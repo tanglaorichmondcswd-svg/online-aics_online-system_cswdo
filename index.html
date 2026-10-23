@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AICS - CSWDO Mabalacat</title>
+<style>
+:root{--navy:#17365d;--ink:#1c2430;--mute:#65707e;--line:#d5dbe3;--bg:#eef1f5;--card:#fff;--gold:#c9a227;--ok:#1f7a4d}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.45 "Segoe UI",system-ui,sans-serif;color:var(--ink);background:var(--bg)}
+.view{display:none}.view.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:16px;margin-bottom:14px}
+h2{font-size:15px;margin:0 0 12px;color:var(--navy)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:14px}
+.stat{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--navy);padding:12px 14px}
+.stat b{display:block;font-size:24px}.stat span{color:var(--mute)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:760px){.cols{grid-template-columns:1fr}}
+.bar{display:grid;grid-template-columns:150px 1fr 40px;gap:8px;align-items:center;margin:5px 0;font-size:13px}
+.bar i{display:block;height:12px;background:var(--navy);border-radius:2px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px 14px}
+label{display:block;font-size:12px;color:var(--mute);margin-bottom:2px}
+input,select,textarea{width:100%;padding:7px 8px;border:1px solid #b9c2ce;border-radius:4px;font:inherit;background:#fff}
+input:focus,select:focus{outline:2px solid var(--gold);outline-offset:0}
+.chk{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink)}.chk input{width:auto}
+.btn{background:var(--navy);color:#fff;border:0;padding:9px 16px;border-radius:4px;font:inherit;cursor:pointer}
+.btn.alt{background:#fff;color:var(--navy);border:1px solid var(--navy)}.btn.red{background:#a33}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+table.t{width:100%;border-collapse:collapse;font-size:13px}
+table.t th{background:#f3f5f8;text-align:left;padding:7px;border-bottom:2px solid var(--line)}
+table.t td{padding:7px;border-bottom:1px solid var(--line)}
+.scroll{overflow-x:auto}
+
+/* ===== Layout: left sidebar ===== */
+#side{position:fixed;inset:0 auto 0 0;width:248px;background:linear-gradient(180deg,#12294a,#17365d 60%,#0f2340);color:#cfd9e8;display:flex;flex-direction:column;border-right:4px solid var(--gold);z-index:5;overflow-y:auto}
+.brand{display:flex;gap:11px;align-items:center;padding:18px 16px;border-bottom:1px solid #ffffff1f}
+.brand .seal{width:44px;height:44px;border-radius:50%;background:var(--gold);color:var(--navy);display:grid;place-items:center;font-weight:800;font-size:13px;flex:none;box-shadow:0 0 0 3px #ffffff2a}
+.brand b{display:block;color:#fff;font-size:17px;letter-spacing:.5px}
+.brand span{font-size:11px;color:#9fb2cc;line-height:1.3;display:block}
+nav{display:flex;flex-direction:column;gap:3px;padding:14px 10px}
+nav button{display:flex;align-items:center;gap:12px;background:none;border:0;border-left:3px solid transparent;color:#cfd9e8;padding:11px 12px;border-radius:6px;font:inherit;cursor:pointer;text-align:left}
+nav button svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+nav button:hover{background:#ffffff14;color:#fff}
+nav button.on{background:#ffffff22;color:#fff;border-left-color:var(--gold);font-weight:600}
+#side .foot{padding:14px 16px;font-size:11px;color:#9fb2cc;border-top:1px solid #ffffff1f}
+#side .foot b{color:var(--gold);display:block;font-size:12px}
+main{margin-left:248px;padding:22px 28px 40px;max-width:1320px}
+.top{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-bottom:18px;padding-bottom:12px;border-bottom:2px solid var(--line)}
+.top h1{margin:0;font-size:25px;color:var(--navy);font-weight:700}
+.top p{margin:2px 0 0;color:var(--mute)}
+#clock{color:var(--mute);font-size:13px;text-align:right}
+
+/* ===== Cards, stats, tables ===== */
+.card{border-radius:10px;box-shadow:0 1px 3px #1a2b4a1a;border-top:3px solid var(--navy)}
+h2{padding-bottom:9px;border-bottom:1px solid var(--line);margin-bottom:14px}
+.stats{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+.stats .stat{display:flex;gap:13px;align-items:center;border:1px solid var(--line);border-left:1px solid var(--line);border-radius:10px;padding:14px;box-shadow:0 1px 3px #1a2b4a14}
+.stat em{font-style:normal;width:46px;height:46px;border-radius:12px;display:grid;place-items:center;font-size:21px;flex:none}
+.stat b{font-size:22px;line-height:1.15}
+.stat.s0 em{background:#e1eaf7}.stat.s1 em{background:#fbefcc}.stat.s2 em{background:#dcf2e6}
+.stat.s3 em{background:#f6dfe6}.stat.s4 em{background:#e6e1f7}.stat.s5 em{background:#d9eff2}
+.bar i{background:linear-gradient(90deg,var(--navy),#4a78b5);border-radius:6px}
+.bar{grid-template-columns:170px 1fr 34px}
+table.t tr:hover td{background:#f6f9fd}
+table.t td:first-child{font-weight:600;color:var(--navy);white-space:nowrap}
+table.t th{color:var(--navy);font-size:12px}
+.btn{border-radius:6px;font-weight:600;transition:filter .15s}.btn:hover{filter:brightness(1.12)}
+input,select{transition:border-color .15s,box-shadow .15s}
+input:focus,select:focus{outline:0;border-color:var(--navy);box-shadow:0 0 0 3px #c9a22744}
+@media(max-width:860px){
+  #side{position:static;width:auto;flex-direction:row;align-items:center;flex-wrap:wrap;border-right:0;border-bottom:4px solid var(--gold)}
+  .brand{border:0;padding:10px 14px}
+  nav{flex-direction:row;padding:0 8px 8px;flex:1 1 100%;overflow-x:auto}
+  nav button{padding:8px 12px;border-left:0;border-bottom:3px solid transparent;white-space:nowrap}
+  nav button.on{border-bottom-color:var(--gold)}
+  #side .foot{display:none}
+  main{margin-left:0;padding:16px 12px 30px}
+  .bar{grid-template-columns:110px 1fr 30px}
+}
+
+.cats{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
+.cat{background:#fff;border:2px solid var(--line);border-top:5px solid var(--navy);border-radius:12px;padding:24px 18px;text-align:left;cursor:pointer;font:inherit;transition:transform .15s,border-color .15s,box-shadow .15s}
+.cat:hover{border-color:var(--gold);border-top-color:var(--gold);transform:translateY(-3px);box-shadow:0 6px 16px #1a2b4a22}
+.cat i{font-style:normal;font-size:32px;display:block;margin-bottom:10px}
+.cat b{display:block;font-size:18px;color:var(--navy);margin-bottom:4px}
+.cat span{color:var(--mute);font-size:12px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+
+.chks{display:flex;flex-wrap:wrap;gap:6px 18px;padding:4px 0}
+textarea{resize:vertical}
+.mute{color:var(--mute);margin:0 0 8px}
+.doc{width:8.5in;margin:0 auto;background:#fff;color:#000;font:10px/1.3 Arial,sans-serif;padding:0 .12in}
+.doc table{width:100%;border-collapse:collapse}
+.doc td,.doc th{border:1px solid #000;padding:2px 4px;vertical-align:top;text-align:left}
+.doc th{background:#eee;font-size:9px}
+.doc small{display:block;font-size:8px;color:#333}
+.doc .sec{background:#000;color:#fff;font-weight:bold;padding:3px 6px;margin-top:5px;font-size:11px}
+.doc .nb td{border:0;padding:1px 2px}
+.doc.cs{font-size:12px;line-height:1.45}
+.doc.cs h2{text-align:center;margin:10px 0 0;font-size:16px}
+.doc.cs h4{margin:12px 0 3px;font-size:12px}
+.doc.cs p{white-space:pre-wrap;text-align:justify;margin:4px 0 8px;text-indent:.4in}
+
+/* ===== Notifications: navy toasts and dialogs ===== */
+#toasts{position:fixed;top:18px;right:18px;display:flex;flex-direction:column;gap:10px;z-index:350;width:min(360px,calc(100vw - 36px))}
+.tt{display:flex;gap:12px;align-items:flex-start;background:linear-gradient(135deg,#12294a,#17365d);color:#e8eef7;border-radius:12px;padding:13px 14px;border-left:5px solid var(--gold);box-shadow:0 12px 30px #0b1d3a66;font-size:13.5px;line-height:1.4;animation:tin .25s ease-out}
+.tt i{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-weight:700;background:#ffffff22;color:#fff}
+.tt b{display:block;color:#fff;font-size:13px;letter-spacing:.3px;margin-bottom:1px}
+.tt.ok{border-left-color:#3ecf8e}.tt.ok i{background:#3ecf8e33;color:#7ff0bd}
+.tt.err{border-left-color:#ff6b70}.tt.err i{background:#ff6b7033;color:#ffb0b3}
+.tt button{margin-left:auto;background:none;border:0;color:#9fb2cc;font-size:20px;line-height:1;cursor:pointer;padding:0 2px}
+.tt button:hover{color:#fff}
+@keyframes tin{from{transform:translateX(34px);opacity:0}to{transform:none;opacity:1}}
+#modal{position:fixed;inset:0;background:#0b1d3acc;display:none;align-items:center;justify-content:center;z-index:400;padding:16px;backdrop-filter:blur(2px)}
+.mbox{background:#fff;border-radius:14px;width:100%;max-width:430px;overflow:hidden;box-shadow:0 24px 60px #000a;animation:mpop .2s ease-out}
+.mhead{background:linear-gradient(135deg,#12294a,#17365d);color:#fff;padding:16px 18px;display:flex;gap:12px;align-items:center;border-bottom:3px solid var(--gold)}
+.mhead i{flex:none;width:38px;height:38px;border-radius:50%;background:#ffffff22;display:grid;place-items:center;font-style:normal;font-size:18px;font-weight:700}
+.mhead b{font-size:16px}
+.mbody{padding:20px 18px 16px;color:var(--ink);line-height:1.55;white-space:pre-line;font-size:14px}
+.mfoot{padding:0 18px 18px;display:flex;gap:8px;justify-content:flex-end}
+@keyframes mpop{from{transform:scale(.94) translateY(8px);opacity:0}to{transform:none;opacity:1}}
+
+/* ===== Sign-in gate, user chip, roles ===== */
+#gate{position:fixed;inset:0;background:radial-gradient(circle at 20% 15%,#24508a,#12294a 55%,#0b1d3a);display:flex;align-items:center;justify-content:center;z-index:300;padding:16px}
+.gbox{background:#fff;border-radius:16px;width:100%;max-width:470px;overflow:hidden;box-shadow:0 24px 60px #000a}
+.ghead{background:linear-gradient(135deg,#12294a,#17365d);color:#fff;padding:20px;display:flex;gap:14px;align-items:center;border-bottom:4px solid var(--gold)}
+.ghead .seal{width:50px;height:50px;border-radius:50%;background:var(--gold);color:var(--navy);display:grid;place-items:center;font-weight:800;font-size:13px;flex:none}
+.ghead b{display:block;font-size:16px}.ghead span{font-size:13px;color:#b9c8de}
+.gbody{padding:20px;line-height:1.55}
+.gbody .gmail{background:#eef3fa;border-radius:8px;padding:8px 12px;margin:0 0 12px}
+.gbody .gform label{margin-top:8px}
+.gbody a{color:var(--navy);font-weight:600}
+.gbody .gl2{font-size:12px;color:var(--mute);margin:14px 0 0}
+.me{margin:auto 10px 10px;padding:12px;border-radius:10px;background:#ffffff14;font-size:12px;color:#cfd9e8;display:none}
+.me b{display:block;color:#fff;font-size:13px}.me small{display:block;margin:3px 0 6px;word-break:break-all}
+.me a{color:var(--gold);font-size:11px}
+.role{display:inline-block;margin:3px 0;padding:1px 8px;border-radius:99px;font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;background:#ffffff26;color:#fff}
+.role.rSUPER{background:var(--gold);color:var(--navy)}.role.rADMIN{background:#4a78b5}
+#side .foot{margin-top:0}
+
+/* ===== Guarantee letter ===== */
+#gl{display:none}
+.gl{width:8.5in;margin:0 auto;background:#fff;color:#000;font-family:Arial,sans-serif;font-size:11px;padding:0}
+.gl img.hf{width:100%;display:block}
+.gl .ph{height:.9in;background:#e8ecf2;display:flex;align-items:center;justify-content:center;color:#888}
+.gl .body{padding:6px 14px}
+.gl h3{text-align:center;color:#1a1ac8;font-size:20px;margin:8px 0;border:1px solid #000;padding:4px}
+.gl table{width:100%;border-collapse:collapse}
+.gl td,.gl th{border:1px solid #000;padding:2px 6px}
+.gl .bar2{background:#1d3b5c;color:#fff;text-align:center;font-weight:bold;letter-spacing:1px;margin-top:6px;padding:2px}
+.gl .big{font-size:14px;font-weight:bold}
+.gl .svc td{font-weight:bold;height:17px}
+.gl .qr{width:150px;height:150px;display:block;margin:auto}
+.gl .ftw{position:relative;width:100%;padding-bottom:12.6%;overflow:hidden;margin-top:6px}
+.gl .ftw img{position:absolute;left:0;bottom:0;width:100%}
+.gl .qrw{position:relative;width:150px;height:150px;margin:auto}
+.gl .qrl{position:absolute;left:50%;top:50%;width:72px;transform:translate(-50%,-50%)}
+.gl .sig{display:flex;justify-content:space-between;margin-top:22px;text-align:center}
+.gl .sig div{width:46%;border-top:1px solid #000;font-weight:bold;padding-top:2px}
+.gl .amt{color:#1a1ac8;font-weight:bold}
+@media print{
+  @page{size:8.5in 13in;margin:.25in}
+  body{background:#fff}
+  aside,main,#toasts,#modal{display:none!important}
+  #gl{display:block!important}
+}
+</style>
+</head>
+<body>
+<aside id="side">
+  <div class="brand"><div class="seal">AICS</div><div><b>AICS</b><span>CSWDO · Mabalacat City<br>Assistance to Individuals in Crisis Situation</span></div></div>
+  <nav>
+    <button data-v="dash" class="on"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Dashboard</button>
+    <button data-v="assess"><svg viewBox="0 0 24 24"><path d="M9 4h6a1 1 0 0 1 1 1v1H8V5a1 1 0 0 1 1-1z"/><path d="M8 6H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-2M8 12h8M8 16h5"/></svg>Assessment</button>
+    <button data-v="entry"><svg viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M12 12v6M9 15h6"/></svg>Guarantee letter</button>
+    <button data-v="recs"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Records</button>
+    <button data-v="dir"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>Directory</button>
+    <button data-v="users" id="navUsers" style="display:none"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>Users &amp; access</button>
+  </nav>
+  <div class="me" id="meBox"></div>
+  <div class="foot" style="margin-top:auto"><b>Serbisyong Tuloy-Tuloy</b>Mabalacat City Government</div>
+</aside>
+
+<main>
+  <div class="top"><div><h1 id="pageTitle">Dashboard</h1><p id="pageSub">Overview of assistance issued</p></div><div id="clock"></div></div>
+  <section id="dash" class="view on">
+    <div class="stats" id="stats"></div>
+    <div class="stats" id="catStats"></div>
+    <div class="cols">
+      <div class="card"><h2>By type of assistance</h2><div id="byType"></div></div>
+      <div class="card"><h2>Top barangays</h2><div id="byBrgy"></div></div>
+    </div>
+    <div class="card"><h2>Latest guarantee letters</h2><div class="scroll" id="recent"></div></div>
+  </section>
+
+  <section id="assess" class="view">
+    <div id="asList"></div>
+    <div id="asForm" style="display:none"></div>
+    <div id="asDone" style="display:none"></div>
+  </section>
+
+  <section id="entry" class="view">
+    <div id="pick"></div>
+    <div id="formWrap" style="display:none"></div>
+  </section>
+
+  <section id="recs" class="view">
+    <div class="card">
+      <div id="recTabs" class="tabs" style="margin-bottom:10px"></div>
+      <input id="q" placeholder="Search by name, control #, barangay, hospital...">
+      <div class="scroll" style="margin-top:10px" id="list"></div>
+    </div>
+  </section>
+  <section id="dir" class="view">
+    <div class="card"><div id="dirTabs" class="row" style="margin:0"></div></div>
+    <div class="card" id="dirFormCard"><h2 id="dirTitle"></h2><div class="grid" id="dirForm"></div>
+      <div class="row"><button class="btn" id="dirSave">Save</button><button class="btn alt" id="dirClear">Clear form</button></div></div>
+    <div class="card"><input id="dq" placeholder="Search this list..."><div class="scroll" style="margin-top:10px" id="dirList"></div></div>
+  </section>
+  <section id="users" class="view">
+    <div class="card"><div id="usersTabs" class="tabs"></div></div>
+    <div id="usersBody"></div>
+  </section>
+</main>
+<div id="toasts"></div>
+<div id="modal"></div>
+<div id="gate"></div>
+<div id="gl"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let TOKEN='';try{TOKEN=localStorage.getItem('aicsTok')||''}catch(e){}   // stays signed in on this device
+const saveTok=t=>{TOKEN=t||'';try{t?localStorage.setItem('aicsTok',t):localStorage.removeItem('aicsTok')}catch(e){}};
+/* Where the Apps Script back end lives. Used only when this page is hosted outside Google (GitHub Pages / Netlify). */
+const API_URL='https://script.google.com/macros/s/AKfycbw9bi4AZtQ4W35K_o9QeWmZ7H2efZj9tKa7NTYUqUzvbsJ3FHmnqG_iEmLDBpbO-CwVkg/exec';
+const INSIDE_GOOGLE=typeof google!=='undefined'&&google.script&&google.script.run;
+const raw=(fn,...a)=>INSIDE_GOOGLE
+  ?new Promise((ok,no)=>google.script.run.withSuccessHandler(ok).withFailureHandler(no)[fn](...a))
+  :fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({rpc:fn,args:a})})   // text/plain = no CORS preflight
+    .then(r=>r.json().catch(()=>{throw new Error('The server did not answer correctly. Check that the latest Code.gs is deployed as a New version.')}))
+    .then(j=>{if(!j.ok)throw new Error(j.error||'Request failed');return j.result});   // public calls (sign-in, request access)
+const run=(fn,...a)=>raw('api',TOKEN,fn,a).catch(e=>{   // every other call carries the sign-in token
+  if(/SESSION_EXPIRED/.test((e&&e.message)||'')){saveTok('');ME={};gate('login','Your session ended. Please sign in again.');throw new Error('Session ended. Please sign in again.')}
+  throw e});
+let S={types:[],records:[],images:{}};
+const today=()=>{const d=new Date(),p=n=>('0'+n).slice(-2);return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())};
+const money=n=>'₱'+Number(n||0).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+/* ---------- Field definitions: [key, label, type, options] ---------- */
+const GENDER=['Male','Female'],CIVIL=['Single','Married','Widowed','Separated','Live-in'];
+const F_A=[['TypeOfAssistance','Type of assistance','ro'],['ControlID','Control ID (auto)','ro'],['DateToday','Date','date'],['Status','Status','select',['Approved','Pending','Released','Cancelled']]];
+const F_C=[['LastName','Last name'],['FirstName','First name'],['MiddleName','Middle name'],['ExtName','Ext. name (Sr/Jr/I/II/III)'],
+['DOB','Date of birth','date'],['Age','Age','ro'],['BirthPlace','Birth place'],['Gender','Gender','select',GENDER],['CivilStatus','Civil status','select',CIVIL],
+['Street','House / Block / Lot no. / Street'],['Barangay','Barangay'],['City','City / Municipality','text','Mabalacat City'],
+['Religion','Religion'],['Occupation','Occupation'],['Contact','Contact number'],['MotherMaidenName',"Mother's maiden name"],
+['MonthlyIncome','Monthly family net income','number'],['RelationToPatient','Relation to the patient'],['IDNumber','ID card number']];
+const F_P=[['PatientName','Name of patient'],['ReferredTo','Hospital'],['ContactPerson','Contact person (auto from stakeholder)'],['Doctors','Doctor/s'],['PatientAge','Patient age','number'],
+['PatientGender','Patient gender','select',GENDER],['AmountApproved','Approved amount / procedure (₱)','number'],['AssessedBy','Assessed by'],
+['PatientStreet','Patient house / block / lot no. / street'],['PatientBarangay','Barangay'],['PatientCity','City / Municipality','text','Mabalacat City']];
+const SVC=[['MRI','MRI'],['CTScan','CT Scan'],['Echo2D','2D Echo'],['Ultrasound','Ultrasound'],['Chemotherapy','Chemotherapy'],['Tomotherapy','Tomotherapy'],
+['Brachytherapy','Brachytherapy'],['Radiation','Radiation'],['HospitalBill','Hospital Bill'],['Laboratory','Laboratory'],['Implant','Implant']];
+const F_G=[['ExpirationDate','Expiration date','date']];
+const F_R=[['MRIResult','MRI result'],['CTScanResult','CT Scan result'],['Echo2DResult','2D Echo result'],['UltrasoundResult','Ultrasound result']];
+const SIGN={CrisisUnitHead:'KHRISTINE CAROLE L. GANTAN,RSW',CSWDOHead:'JOSEPHINE B. TANGLAO,RSW MMPM',Mayor:'HON. GERALD GUTTRIE P. AQUINO'}; // edit names here
+
+function fieldHTML([k,l,t='text',o]){
+  if(t==='select'){const opts=o==='TYPES'?S.types.map(x=>x[0]):o;return `<div><label>${l}</label><select id="${k}"><option value=""></option>${opts.map(x=>`<option>${esc(x)}</option>`).join('')}</select></div>`}
+  return `<div><label>${l}</label><input id="${k}" type="${t==='ro'?'text':t}" ${t==='ro'?'readonly':''} value="${typeof o==='string'&&t!=='select'?esc(o):''}"></div>`;
+}
+const F_BEN=F_C.map(x=>x[0]==='RelationToPatient'?['RelationToDeceased','Relation to the deceased']:x);
+const F_DEC=[['DeceasedLastName','Last name'],['DeceasedFirstName','First name'],['DeceasedMiddleName','Middle name'],['DeceasedExtName','Ext. name (Sr/Jr/I/II/III)'],
+['DeceasedDOB','Date of birth','date'],['DateOfDeath','Date of death','date'],['DeceasedAge','Age at death','ro'],['DeceasedGender','Gender','select',GENDER],
+['DeceasedCivilStatus','Civil status','select',CIVIL],['CauseOfDeath','Cause of death'],['DeathCertNo','Death certificate no.'],
+['DeceasedStreet','House / block / lot no. / street'],['DeceasedBarangay','Barangay'],['DeceasedCity','City / municipality','text','Mabalacat City']];
+const F_BG=[['ReferredTo','Funeral home / parlor'],['ContactPerson','Contact person (auto from stakeholder)'],['AmountApproved','Approved amount (₱)','number'],['AssessedBy','Assessed by'],['ExpirationDate','Expiration date','date'],['Others','Remarks / others']];
+const ICON={MEDLAB:'🧪',MEDHOS:'🏥',BURIAL:'🕊️'};
+let cat=null,ALL=[],recCat='ALL',curCase=null,glCase='',asCur=null;
+const dname=r=>[r.DeceasedLastName+',',r.DeceasedFirstName,r.DeceasedMiddleName,r.DeceasedExtName].filter(Boolean).join(' ');
+const subj=r=>r.Category==='BURIAL'?dname(r):(r.PatientName||fullName(r));
+const card=(t,b)=>`<div class="card"><h2>${t}</h2>${b}</div>`;
+
+function lettersHTML(c){   // existing guarantee letters of this client: editable even while a category is locked
+  const id=ident(c),L=S.records.filter(r=>r.CaseNo===c.CaseNo||ident(r)===id).sort((a,b)=>(b.DateToday||'').localeCompare(a.DateToday||''));
+  if(!L.length)return '';
+  return `<h2 style="margin-top:20px">Guarantee letters of this client</h2><p class="mute">Correct a letter here, even if its category is locked. Only the guarantee letter changes; the assessment and case study stay as they are.</p>
+  <div class="scroll"><table class="t"><tr><th>Control #</th><th>Category</th><th>Amount</th><th>Date</th><th>Status</th><th></th></tr>${L.map(r=>`<tr><td>${esc(r.ControlID)}</td><td>${esc(r.TypeOfAssistance)}</td><td>${money(r.AmountApproved)}</td><td>${esc(r.DateToday)}</td><td>${esc(r.Status)}</td>
+  <td style="white-space:nowrap">${mine(r)?`<button class="btn" data-e="${esc(r.ControlID)}">Edit letter</button>`:''} <button class="btn alt" data-p="${esc(r.ControlID)}">Print</button></td></tr>`).join('')}</table></div>`;
+}
+function casePanel(c,inEntry){
+  const g=c.Generated||'',ok=true;   // documents are optional; they no longer gate the guarantee letter
+  return `<div class="card"><h2>Case ${esc(c.CaseNo)} · ${esc(fullName(c))}</h2>
+  <p class="mute"><b>Step 1 (optional)</b> – print the General Intake Sheet, Case Study or Certification if needed.</p>
+  <div class="row" style="margin:0 0 6px"><button class="btn" data-gen="intake" data-cn="${esc(c.CaseNo)}">Generate General Intake Sheet</button>
+   <button class="btn" data-gen="study" data-cn="${esc(c.CaseNo)}">Generate Case Study</button>
+   <button class="btn" data-gen="cert" data-cn="${esc(c.CaseNo)}">Generate Certification</button>
+   ${mine(c)?`<button class="btn alt" data-ae="${esc(c.CaseNo)}">Edit assessment</button>`:''}
+   ${inEntry?'<button class="btn alt" data-sel="">Change case</button>':'<button class="btn alt" data-v="assess">Back to list</button>'}</div>
+  <p class="mute">Generated so far: <b>${esc(g)||'nothing yet'}</b></p>
+  <p class="mute" style="margin-top:14px"><b>Step 2</b> – choose the guarantee letter category. The form is filled in from this assessment. Each category can be availed once every ${S.gap||3} months per client, counted separately.</p>
+  <div class="cats">${Object.entries(S.cats).map(([k,ct])=>{const e=eligibility(c,k,''),on=ok&&e.ok,
+   sub=!ok?'Generate a document first':!e.ok?'Not eligible until '+longDate(e.next)+' · last availed '+longDate(e.last.DateToday):e.last?'Eligible · last availed '+longDate(e.last.DateToday):'Eligible · no previous availment';
+   return `<button class="cat" data-c="${k}" data-cn="${esc(c.CaseNo)}" style="${on?'':'opacity:.45'}"><i>${ICON[k]}</i><b>${ct.label}</b><span>${sub}</span></button>`}).join('')}</div>${lettersHTML(c)}</div>`;
+}
+function caseRows(){
+  const q=($('cq')?$('cq').value:'').toLowerCase(),L=S.intakes.filter(c=>!q||(c.CaseNo+' '+fullName(c)).toLowerCase().includes(q));
+  $('caseList').innerHTML=L.length?'<table class="t"><tr><th>Case no.</th><th>Client</th><th>Case category</th><th>Documents</th><th></th></tr>'+
+   L.map(c=>`<tr><td>${esc(c.CaseNo)}</td><td>${esc(fullName(c))}</td><td>${esc(c.CaseCategory)}</td><td>${esc(c.Generated)||'-'}</td><td><button class="btn" data-sel="${esc(c.CaseNo)}">Select</button></td></tr>`).join('')+'</table>'
+   :'<p class="mute">No assessed cases yet. Create an assessment first.</p>';
+}
+function pick(){
+  $('formWrap').style.display='none';$('pick').style.display='block';
+  if(curCase){$('pick').innerHTML=casePanel(curCase,true);return}
+  $('pick').innerHTML='<div class="card"><h2>Select an assessed case</h2><p class="mute">A guarantee letter is based on the social worker\'s assessment. Pick the case, or create a new assessment.</p><div class="row" style="margin:0 0 10px"><input id="cq" placeholder="Search case no. or client name" style="max-width:340px"><button class="btn alt" data-v="assess" data-an="1">New assessment</button></div><div class="scroll" id="caseList"></div></div>';
+  $('cq').oninput=caseRows;caseRows();
+}
+function buildForm(k){  // step 2: the entry form for that category
+  cat=k;const c=S.cats[k],bur=c.form==='bur';
+  ALL=bur?[...F_A,...F_BEN,...F_DEC,...F_BG]:[...F_A,...F_C,...F_P,...F_G,...F_R];
+  const grid=f=>`<div class="grid">${f.map(fieldHTML).join('')}</div>`;
+  let x=`<div class="card"><div class="row" style="margin:0;align-items:center;justify-content:space-between"><h2 id="formTitle" style="border:0;margin:0;padding:0"></h2><button class="btn alt" id="chg">Change category</button></div><div class="grid" style="margin-top:12px">${F_A.map(fieldHTML).join('')}</div></div>`;
+  x+=bur?card('Beneficiary information',grid(F_BEN))+card('Information of the deceased',grid(F_DEC))+card('Assistance details',grid(F_BG))
+   :card('Client information',grid(F_C))
+    +card('Medical information',`<label class="chk"><input type="checkbox" id="ClientIsPatient"> Client is the patient</label><div class="grid" style="margin-top:10px">${F_P.map(fieldHTML).join('')}</div>
+      <h2 style="margin-top:16px">Disposition</h2><div class="grid">${SVC.map(([k,l])=>`<label class="chk"><input type="checkbox" id="${k}"> ${l}</label>`).join('')}${F_R.map(fieldHTML).join('')}${fieldHTML(['Others','Others (specify)'])}</div>`)
+    +card('Approval',grid(F_G));
+  x+='<div class="card"><div class="row" style="margin:0"><button class="btn" id="save">Save record</button><button class="btn alt" id="savePrint">Save and print letter</button><button class="btn alt" id="reset">Clear form</button></div></div>';
+  $('formWrap').innerHTML=x;
+  $('chg').onclick=pick;$('save').onclick=()=>save(false);$('savePrint').onclick=()=>save(true);$('reset').onclick=resetForm;
+  $('DOB').onchange=calcAge;
+  if(bur){$('DateOfDeath').onchange=$('DeceasedDOB').onchange=calcDec}else{$('ClientIsPatient').onchange=togglePatient}
+  glCase=curCase?curCase.CaseNo:'';$('pick').style.display='none';$('formWrap').style.display='block';resetForm();lists();if(curCase)prefill(curCase);$('ReferredTo').oninput=$('ReferredTo').onchange=syncContact;window.scrollTo(0,0);
+}
+function syncContact(){   // hospital / funeral home picked from Stakeholders -> fill its contact person
+  const n=$('ReferredTo').value.trim().toUpperCase(),s=S.dirs.Stakeholders.find(x=>(x.Name||'').trim().toUpperCase()===n);
+  if(s)$('ContactPerson').value=s.ContactPerson||'';
+}
+function calcAge(){const d=$('DOB').value;if(!d){$('Age').value='';return}const b=new Date(d),n=new Date();let a=n.getFullYear()-b.getFullYear();
+  if(n<new Date(n.getFullYear(),b.getMonth(),b.getDate()))a--;$('Age').value=a}
+function calcDec(){const b=$('DeceasedDOB').value,d=$('DateOfDeath').value;if(!b||!d){$('DeceasedAge').value='';return}
+  const x=new Date(b),y=new Date(d);let a=y.getFullYear()-x.getFullYear();if(y<new Date(y.getFullYear(),x.getMonth(),x.getDate()))a--;$('DeceasedAge').value=a>=0?a:''}
+function togglePatient(){const on=$('ClientIsPatient').checked;
+  ['PatientName','PatientAge','PatientGender','PatientStreet','PatientBarangay','PatientCity'].forEach(k=>$(k).closest('div').style.opacity=on?.4:1)}
+function resetForm(){
+  const c=S.cats[cat],bur=c.form==='bur';
+  ALL.forEach(([k,,t,o])=>{const e=$(k);if(e)e.value=(t==='text'&&typeof o==='string')?o:''});
+  if(!bur){SVC.forEach(([k])=>$(k).checked=false);$('Others').value='';$('ClientIsPatient').checked=false;togglePatient();
+    if(cat==='MEDHOS')$('HospitalBill').checked=true;if(cat==='MEDLAB')$('Laboratory').checked=true}
+  $('TypeOfAssistance').value=c.label;$('DateToday').value=today();$('Status').value='Approved';
+  const x=new Date();x.setMonth(x.getMonth()+6);$('ExpirationDate').value=x.toISOString().slice(0,10);
+  $('formTitle').textContent='New guarantee letter · '+c.label+(glCase?' · Case '+glCase:'');
+}
+function collect(){
+  const bur=S.cats[cat].form==='bur',r={Category:cat,CaseNo:glCase};
+  ALL.forEach(([k])=>r[k]=$(k).value.trim());
+  ['LastName','FirstName','MiddleName'].concat(bur?['DeceasedLastName','DeceasedFirstName','DeceasedMiddleName']:[]).forEach(k=>r[k]=r[k].toUpperCase());
+  if(!bur){
+    SVC.forEach(([k])=>r[k]=$(k).checked?'YES':'');r.Others=$('Others').value.trim();
+    r.ClientIsPatient=$('ClientIsPatient').checked?'YES':'NO';
+    if(r.ClientIsPatient==='YES'){
+      r.PatientName=[r.LastName+',',r.FirstName,r.MiddleName,r.ExtName].filter(Boolean).join(' ');
+      r.PatientAge=r.Age;r.PatientGender=r.Gender;r.PatientStreet=r.Street;r.PatientBarangay=r.Barangay;r.PatientCity=r.City;
+    }
+  }
+  r.AmountWords=pesos(r.AmountApproved);
+  return r;
+}
+function fill(r){
+  buildForm(r.Category);glCase=r.CaseNo||'';const bur=S.cats[cat].form==='bur';
+  ALL.forEach(([k])=>{if($(k))$(k).value=r[k]||''});
+  if(!bur){SVC.forEach(([k])=>$(k).checked=r[k]==='YES');$('Others').value=r.Others||'';$('ClientIsPatient').checked=r.ClientIsPatient==='YES';togglePatient()}
+  calcAge();if(bur)calcDec();
+  $('formTitle').textContent='Editing '+r.ControlID+' · '+S.cats[cat].label+' · correction only (assessment and case study are not changed)';
+}
+async function save(print){
+  const r=collect(),bur=S.cats[cat].form==='bur';
+  const need=bur?['LastName','FirstName','DeceasedLastName','DeceasedFirstName']:['LastName','FirstName'];
+  if(need.some(k=>!r[k]))return notify(bur?'Beneficiary and deceased first and last names are required.':'Last name and first name are required.');
+  if(!r.ControlID){const e=eligibility(r,cat,'',r.DateToday);
+    if(!e.ok)return notify(`${S.cats[cat].label}: already availed on ${longDate(e.last.DateToday)} (${e.last.ControlID}).\nNext availment is allowed on ${longDate(e.next)}.`)}
+  try{
+    const saved=await run('saveRecord',r);
+    const i=S.records.findIndex(x=>x.ControlID===saved.ControlID);
+    i>-1?S.records[i]=saved:S.records.push(saved);
+    toast('Saved '+saved.ControlID);renderAll();
+    if(print){$('ControlID').value=saved.ControlID;printGL(saved)}else{pick();recCat=saved.Category;renderAll();show('recs')}
+  }catch(e){notify('Could not save: '+(e.message||e))}
+}
+
+/* ---------- Views ---------- */
+function show(v){document.querySelectorAll('.view').forEach(x=>x.classList.toggle('on',x.id===v));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  const T={dash:['Dashboard','Overview of assistance issued'],assess:['Assessment','Intake sheet and case study come first'],entry:['Guarantee letter','Select an assessed case, then choose a category'],recs:['Records','Search, edit and print guarantee letters'],dir:['Directory','Stakeholders, contacts and social workers'],users:['Users and access','Who can use the system, requests and activity']}[v];
+  $('pageTitle').textContent=T[0];$('pageSub').textContent=T[1];window.scrollTo(0,0)}
+$('clock').textContent=new Date().toLocaleDateString('en-PH',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+function toast(m,type='ok'){const t=document.createElement('div');t.className='tt '+type;
+  t.innerHTML=`<i>${{ok:'✓',err:'✕',info:'i'}[type]}</i><div><b>${{ok:'Success',err:'Error',info:'Notice'}[type]}</b>${esc(m)}</div><button aria-label="Close">×</button>`;
+  t.querySelector('button').onclick=()=>t.remove();$('toasts').appendChild(t);setTimeout(()=>t.remove(),type==='err'?6000:3200)}
+function modal(kind,msg,{ok='OK',cancel=null,danger=false}={}){return new Promise(res=>{
+  const m=$('modal'),meta={warn:['!','Please check'],err:['✕','Something went wrong'],ask:['?','Please confirm']}[kind];
+  m.innerHTML=`<div class="mbox" role="dialog"><div class="mhead"><i>${meta[0]}</i><b>${meta[1]}</b></div><div class="mbody">${esc(msg)}</div><div class="mfoot">${cancel?`<button class="btn alt" id="mc">${cancel}</button>`:''}<button class="btn${danger?' red':''}" id="mo">${ok}</button></div></div>`;
+  m.style.display='flex';
+  const kd=e=>{if(e.key==='Escape')done(false);if(e.key==='Enter'){e.preventDefault();done(true)}};
+  const done=v=>{m.style.display='none';m.innerHTML='';document.removeEventListener('keydown',kd);res(v)};
+  document.addEventListener('keydown',kd);$('mo').onclick=()=>done(true);if($('mc'))$('mc').onclick=()=>done(false);$('mo').focus()})}
+const notify=m=>modal(/^(Could not|Failed)/.test(m)?'err':'warn',m);
+const ask=(m,ok='Delete')=>modal('ask',m,{ok,cancel:'Cancel',danger:/^Delete/.test(m)});
+const fullName=r=>[r.LastName+',',r.FirstName,r.MiddleName,r.ExtName].filter(Boolean).join(' ');
+function bars(el,obj){const e=Object.entries(obj).sort((a,b)=>b[1]-a[1]).slice(0,8),m=Math.max(1,...e.map(x=>x[1]));
+  $(el).innerHTML=e.length?e.map(([k,v])=>`<div class="bar"><span>${esc(k||'-')}</span><i style="width:${v/m*100}%"></i><b>${v}</b></div>`).join(''):'<span style="color:var(--mute)">No records yet.</span>'}
+function table(rows){
+  if(!rows.length)return '<p style="color:var(--mute)">No records yet. Use New entry to encode the first one.</p>';
+  return `<table class="t"><tr><th>Control #</th><th>Patient / Deceased</th><th>Type</th><th>Referred to</th><th>Amount</th><th>Date</th><th></th></tr>`+
+  rows.map(r=>`<tr><td>${esc(r.ControlID)}</td><td>${esc(subj(r))}</td><td>${esc(r.TypeOfAssistance)}</td><td>${esc(r.ReferredTo)}</td>
+  <td>${money(r.AmountApproved)}</td><td>${esc(r.DateToday)}</td>
+  <td style="white-space:nowrap"><button class="btn alt" data-p="${esc(r.ControlID)}">Print</button> ${mine(r)?`<button class="btn alt" data-e="${esc(r.ControlID)}">Edit</button>`:''} ${can('ADMIN')?`<button class="btn red" data-d="${esc(r.ControlID)}">Delete</button>`:''}</td></tr>`).join('')+'</table>'}
+function renderAll(){
+  const R=S.records,now=new Date(),ym=today().slice(0,7),yr=today().slice(0,4);
+  const mo=R.filter(r=>(r.DateToday||'').startsWith(ym));
+  const tot=R.filter(r=>(r.DateToday||'').startsWith(yr)).reduce((a,r)=>a+Number(r.AmountApproved||0),0);
+  $('stats').innerHTML=[['Total records',R.length],['This month',mo.length],['Approved this month',money(mo.reduce((a,r)=>a+Number(r.AmountApproved||0),0))],['Approved this year',money(tot)],['Active social workers',((S.dirs||{}).SocialWorkers||[]).filter(x=>x.Status!=='Inactive').length],['Partner stakeholders',((S.dirs||{}).Stakeholders||[]).length],['Assessments (cases)',(S.intakes||[]).length]]
+    .map(([l,v],i)=>`<div class="stat s${i}"><em>${['📄','📅','💰','📈','🧑‍⚕️','🏥','📋'][i]}</em><div><b>${v}</b><span>${l}</span></div></div>`).join('');
+  const c=(f)=>R.reduce((o,r)=>(o[r[f]]=(o[r[f]]||0)+1,o),{});
+  $('catStats').innerHTML=Object.entries(S.cats).map(([k,ct],i)=>{const L=R.filter(r=>r.Category===k);
+    return `<div class="stat s${[0,1,3][i]}"><em>${ICON[k]}</em><div><b>${L.length}</b><span>${ct.label} · ${money(L.reduce((a,r)=>a+Number(r.AmountApproved||0),0))}</span></div></div>`}).join('');
+  bars('byType',c('TypeOfAssistance'));bars('byBrgy',c('Barangay'));
+  const sorted=[...R].sort((a,b)=>(b.CreatedAt||'').localeCompare(a.CreatedAt||''));
+  $('recent').innerHTML=table(sorted.slice(0,8));
+  const q=$('q').value.toLowerCase();
+  $('recTabs').innerHTML=[['ALL','All']].concat(Object.entries(S.cats).map(([k,ct])=>[k,ct.label])).map(([k,l])=>`<button class="btn ${k===recCat?'':'alt'}" data-rc="${k}">${l} (${k==='ALL'?R.length:R.filter(r=>r.Category===k).length})</button>`).join('');
+  $('list').innerHTML=table(sorted.filter(r=>(recCat==='ALL'||r.Category===recCat)&&(!q||Object.values(r).join(' ').toLowerCase().includes(q))));
+}
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('button');if(!b)return;
+  const find=id=>S.records.find(r=>r.ControlID===id);
+  if(b.dataset.v){show(b.dataset.v);if(b.dataset.v==='entry'){curCase=null;pick()}if(b.dataset.v==='assess')asShowList()}
+  if(b.dataset.v==='users')usersLoad();
+  if(b.dataset.ut){uTab=b.dataset.ut;usersRender()}
+  if('ua' in b.dataset)userSave({Email:$('uEmail').value.trim(),Name:$('uName').value.trim(),Position:$('uPos').value.trim(),Role:$('uRole').value,Status:'Active'},'User added');
+  if(b.dataset.us){const u=U.find(x=>x.Email===b.dataset.us);userSave(Object.assign({},u,{Status:u.Status==='Active'?'Disabled':'Active'}),'User updated')}
+  if(b.dataset.ud&&await ask('Delete user '+b.dataset.ud+'? They will lose access.')){try{await run('deleteUser',b.dataset.ud);toast('User removed');usersLoad()}catch(x){notify('Could not remove: '+(x.message||x))}}
+  if(b.dataset.ra||b.dataset.rd){const em=b.dataset.ra||b.dataset.rd,ap=!!b.dataset.ra;
+    try{await run('reviewRequest',em,ap?'approve':'deny',b.closest('tr').querySelector('select').value);toast(ap?'Access approved':'Request denied',ap?'ok':'info');usersLoad()}catch(x){notify('Could not save: '+(x.message||x))}}
+  if('an' in b.dataset)asNew();
+  if(b.dataset.ae)asEdit(b.dataset.ae);
+  if(b.dataset.open)showDone(S.intakes.find(x=>x.CaseNo===b.dataset.open));
+  if(b.dataset.ad&&await ask('Delete case '+b.dataset.ad+' and its family composition?')){await run('deleteIntake',b.dataset.ad);
+    S.intakes=S.intakes.filter(x=>x.CaseNo!==b.dataset.ad);S.family=S.family.filter(x=>x.CaseNo!==b.dataset.ad);asShowList();renderAll()}
+  if(b.dataset.fa)$('a_famB').insertAdjacentHTML('beforeend',famRow());
+  if(b.dataset.fr)b.closest('tr').remove();
+  if('sel' in b.dataset){curCase=S.intakes.find(x=>x.CaseNo===b.dataset.sel)||null;pick()}
+  if(b.dataset.gen){const c=S.intakes.find(x=>x.CaseNo===b.dataset.cn),g=b.dataset.gen,
+      lab={intake:'General Intake Sheet',study:'Case Study',cert:'Certification'}[g];
+    ({intake:printIntake,study:printStudy,cert:printCert}[g])(c);
+    run('markGenerated',c.CaseNo,lab).then(v=>{c.Generated=v;renderAll();
+      if($('asDone').style.display==='block')showDone(c);if(curCase&&curCase.CaseNo===c.CaseNo){curCase=c;pick()}})}
+  if(b.dataset.c){const c=S.intakes.find(x=>x.CaseNo===b.dataset.cn)||curCase;
+    if(!c)return;
+    const e=eligibility(c,b.dataset.c,'');
+    if(!e.ok)return notify(`${S.cats[b.dataset.c].label}: already availed on ${longDate(e.last.DateToday)} (${e.last.ControlID}).\nNext availment is allowed on ${longDate(e.next)}.\nTo correct that letter, use “Edit letter” in the list below the categories.`);
+    curCase=c;show('entry');buildForm(b.dataset.c)}
+  if(b.dataset.rc){recCat=b.dataset.rc;renderAll()}
+  if(b.dataset.dt){curDir=b.dataset.dt;dirRender()}
+  if(b.dataset.de){const r=S.dirs[curDir].find(x=>x.ID===b.dataset.de);dirId=r.ID;DIR[curDir].f.forEach(([k])=>$('d_'+k).value=r[k]||'');$('dirTitle').textContent='Editing '+r.ID;window.scrollTo(0,0)}
+  if(b.dataset.dd&&await ask('Delete '+b.dataset.dd+'?')){await run('deleteDir',curDir,b.dataset.dd);S.dirs[curDir]=S.dirs[curDir].filter(x=>x.ID!==b.dataset.dd);dirRender()}
+  if(b.dataset.p)printGL(find(b.dataset.p));
+  if(b.dataset.e){fill(find(b.dataset.e));show('entry')}
+  if(b.dataset.d&&await ask('Delete '+b.dataset.d+'? This removes the row from the sheet.')){
+    await run('deleteRecord',find(b.dataset.d).Category,b.dataset.d);S.records=S.records.filter(r=>r.ControlID!==b.dataset.d);renderAll()}
+});
+$('q').oninput=renderAll;
+
+/* ---------- Guarantee letter ---------- */
+const ONES=['','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen'];
+const TENS=['','','twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety'];
+function w(n){if(n<20)return ONES[n];if(n<100)return TENS[n/10|0]+(n%10?'-'+ONES[n%10]:'');
+  if(n<1000)return ONES[n/100|0]+' hundred'+(n%100?' '+w(n%100):'');
+  for(const [v,s] of [[1e9,'billion'],[1e6,'million'],[1e3,'thousand']])if(n>=v)return w(n/v|0)+' '+s+(n%v?' '+w(n%v):'')}
+function pesos(a){a=Number(a||0);const p=Math.floor(a),c=Math.round((a-p)*100);
+  const t=(p?w(p):'zero').replace(/\b\w/g,x=>x.toUpperCase());return t+' Pesos'+(c?' and '+c+'/100':'')+' Only'}
+const fmtD=d=>{if(!d)return '';const x=new Date(d+'T00:00:00');return (x.getMonth()+1)+'-'+x.getDate()+'-'+x.getFullYear()};
+function printGL(r){
+  const bur=r.Category==='BURIAL';
+  const name=r.PatientName||fullName(r);
+  const addr=[r.PatientStreet,r.PatientBarangay,r.PatientCity].filter(Boolean).join(', ')||[r.Street,r.Barangay,r.City].filter(Boolean).join(', ');
+  const img=(s,t)=>s?`<img class="hf" src="${s}">`:`<div class="ph">${t} image could not be loaded</div>`;
+  const rowsL=[['MRI','MRI'],['CTScan','CT SCAN'],['Echo2D','2D ECHO'],['Ultrasound','ULTRASOUND'],['Chemotherapy','CHEMOTHERAPY'],['Tomotherapy','TOMOTHERAPY'],['Brachytherapy','BRACHYTHERAPY'],['Radiation','RADIATION'],['HospitalBill','HOSPITAL BILL'],['Laboratory','LABORATORY'],['Implant','IMPLANT']];
+  const qr='https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=0&ecc=H&data='+encodeURIComponent(r.ControlID+' | '+name+' | '+r.AmountApproved);
+  const qrImg=`<div class="qrw"><img class="qr" src="${qr}"><img class="qrl" src="${S.images.qrLogo}"></div>`;
+  const medDisp=`<div class="bar2">DISPOSITION</div>
+  <table class="svc"><tr><td style="padding:0;vertical-align:top;border-right:0"><table>
+   ${rowsL.map(([k,l])=>`<tr><td width="62%" style="border-left:0">${l}</td><td align="center" style="font-size:14px">${r[k]==='YES'?'✓':''} <span style="font-size:9px;font-weight:normal">${esc(r[k+'Result'])}</span></td></tr>`).join('')}
+   <tr><td style="border-left:0">OTHERS</td><td align="center" style="font-size:9px">${esc(r.Others)}</td></tr></table></td>
+   <td width="190" align="center" style="vertical-align:middle">${qrImg}<div>${esc(r.ControlID)}</div><div style="font-size:9px">CONTROL #</div></td></tr></table>`;
+  const burDisp=`<div class="bar2">FUNERAL / BURIAL ASSISTANCE</div><table class="svc"><tr><td style="vertical-align:middle;padding:12px;font-weight:normal;font-size:12px;height:150px">Financial assistance for the funeral / burial of <b>${esc(dname(r).toUpperCase())}</b>${r.CauseOfDeath?', cause of death: '+esc(r.CauseOfDeath):''}.<br>Relation of beneficiary to the deceased: ${esc(r.RelationToDeceased)}.<br>${esc(r.Others)}</td>
+  <td width="190" align="center" style="vertical-align:middle">${qrImg}<div>${esc(r.ControlID)}</div><div style="font-size:9px">CONTROL #</div></td></tr></table>`;
+  $('gl').innerHTML=`<div class="gl">${img(S.images.header,'Header')}<div class="body">
+  <h3>GUARANTEE LETTER</h3>
+  <table><tr><td width="22%" align="center"><b>NAME</b></td><td class="big" align="center">${esc(name.toUpperCase())}</td></tr>
+  <tr><td align="center"><b>ADDRESS</b></td><td align="center" style="font-size:9px">${esc(addr.toUpperCase())}</td></tr>
+  <tr><td align="center"><b>AGE</b></td><td align="center" class="big">${esc(r.PatientAge||r.Age)}</td></tr>
+  <tr><td align="center"><b>GENDER</b></td><td align="center" class="big">${esc((r.PatientGender||r.Gender).toUpperCase())}</td></tr></table>
+  <table style="margin-top:8px"><tr><td width="22%" align="center"><b>${bur?'FUNERAL HOME':'REFERRED TO'}</b></td><td class="big" align="center">${esc((r.ReferredTo||'').toUpperCase())}</td></tr>${r.ContactPerson?`<tr><td align="center"><b>CONTACT PERSON</b></td><td class="big" align="center">${esc(r.ContactPerson.toUpperCase())}</td></tr>`:''}
+  ${bur?`<tr><td align="center"><b>DECEASED</b></td><td class="big" align="center">${esc(dname(r).toUpperCase())}</td></tr><tr><td align="center"><b>DATE OF DEATH</b></td><td class="big" align="center">${fmtD(r.DateOfDeath)}</td></tr>`:`<tr><td align="center"><b>DOCTOR/S</b></td><td class="big" align="center">${esc((r.Doctors||'').toUpperCase())}</td></tr>`}</table>
+  ${bur?burDisp:medDisp}
+  <div class="bar2" style="width:160px;text-align:left;margin-top:8px">AMOUNT ASSISTANCE APPROVED</div>
+  <table><tr><td class="amt" style="font-size:16px;width:34%">${money(r.AmountApproved)}</td><td class="amt" style="font-size:13px">${esc(r.AmountWords||pesos(r.AmountApproved))}</td></tr></table>
+  <div class="sig"><div>${esc(SIGN.CrisisUnitHead)}<br><span style="font-weight:normal;font-size:9px">CRISIS INTERVENTION UNIT HEAD</span></div>
+   <div>${esc(SIGN.CSWDOHead)}<br><span style="font-weight:normal;font-size:9px">CSWDO</span></div></div>
+  <div style="text-align:center;margin:30px auto 0;width:60%;border-top:1px solid #000;font-weight:bold;font-size:13px;padding-top:2px">${esc(SIGN.Mayor)}<br><span style="font-weight:normal;font-size:10px">CITY MAYOR</span></div>
+  <table style="width:190px;margin-top:14px"><tr><td class="big" align="center">EXPIRATION DATE</td></tr><tr><td class="big" align="center" style="color:#1a1ac8;font-size:15px">${fmtD(r.ExpirationDate)}</td></tr></table>
+  <p style="font-size:7px;color:#b00;margin:4px 0">ALL DOCUMENTS ATTACHED IN THE APPROVAL OF THE GUARANTEE LETTER ARE SAFELY KEPT IN THE CSWDO AND AVAILABLE ANYTIME FOR COA REQUEST. SUCH DOCUMENTATION WILL BE FORWARDED TO CTO FOR THE RELEASE OF THE CHEQUES AND FULL LIQUIDATION CERTIFICATIONS.</p>
+  </div><div class="ftw"><img src="${S.images.footer}"></div></div>`;
+  const imgs=[...$('gl').querySelectorAll('img')];
+  Promise.all(imgs.map(i=>i.complete?1:new Promise(ok=>{i.onload=i.onerror=ok}))).then(()=>setTimeout(()=>window.print(),200));
+}
+
+/* ---------- Directory: stakeholders, contacts, social workers ---------- */
+const ORG=['Medical / Laboratory','Hospital Bill','Funeral / Burial'];
+const DIR={
+ Stakeholders:{label:'Stakeholders',f:[['Name','Name of stakeholder / partner'],['Type','Type','select',ORG],['ContactPerson','Contact person'],['Contact','Contact number'],['Email','Email'],['Address','Address'],['Remarks','Remarks']]},
+ Contacts:{label:'Contacts',f:[['Name','Full name'],['Position','Position / office'],['Organization','Organization'],['Contact','Contact number'],['Email','Email'],['Address','Address'],['Remarks','Remarks']]},
+ SocialWorkers:{label:'Social workers',f:[['Name','Full name (with credentials)'],['Position','Position'],['LicenseNo','License no.'],['Contact','Contact number'],['Email','Email'],['Area','Assigned area / barangay'],['Status','Status','select',['Active','Inactive']]]}
+};
+let curDir='Stakeholders',dirId='';
+function dirRender(){
+  const d=DIR[curDir];
+  $('dirTabs').innerHTML=Object.keys(DIR).map(k=>`<button class="btn ${k===curDir?'':'alt'}" data-dt="${k}">${DIR[k].label} (${(S.dirs[k]||[]).length})</button>`).join('');
+  $('dirForm').innerHTML=d.f.map(([k,l,t,o])=>`<div><label>${l}</label>`+(t==='select'?`<select id="d_${k}">${o.map(x=>`<option>${x}</option>`).join('')}</select>`:`<input id="d_${k}">`)+'</div>').join('');
+  $('dirFormCard').style.display=can('ADMIN')?'':'none';dirId='';$('dirTitle').textContent='Add to '+d.label.toLowerCase();dirList();lists();renderAll();
+}
+function dirList(){
+  const d=DIR[curDir],q=($('dq').value||'').toLowerCase(),rows=(S.dirs[curDir]||[]).filter(r=>!q||Object.values(r).join(' ').toLowerCase().includes(q));
+  $('dirList').innerHTML=rows.length?`<table class="t"><tr><th>ID</th>${d.f.slice(0,6).map(x=>`<th>${x[1]}</th>`).join('')}<th></th></tr>`+
+   rows.map(r=>`<tr><td>${esc(r.ID)}</td>${d.f.slice(0,6).map(x=>`<td>${esc(r[x[0]])}</td>`).join('')}<td style="white-space:nowrap">${can('ADMIN')?`<button class="btn alt" data-de="${esc(r.ID)}">Edit</button> <button class="btn red" data-dd="${esc(r.ID)}">Delete</button>`:''}</td></tr>`).join('')+'</table>':'<p style="color:var(--mute)">Nothing here yet. Add the first entry above.</p>';
+}
+async function dirSave(){
+  const r={ID:dirId};DIR[curDir].f.forEach(([k])=>r[k]=$('d_'+k).value.trim());
+  if(!r.Name)return notify('Name is required.');
+  try{const s=await run('saveDir',curDir,r),L=S.dirs[curDir],i=L.findIndex(x=>x.ID===s.ID);i>-1?L[i]=s:L.push(s);toast('Saved '+s.ID);dirRender()}
+  catch(e){notify('Could not save: '+(e.message||e))}
+}
+function lists(){  // suggestions on the entry form: hospitals from Stakeholders, assessors from active Social Workers
+  let el=$('dl');if(!el){el=document.createElement('div');el.id='dl';document.body.appendChild(el)}
+  const hosp=S.dirs.Stakeholders.filter(x=>/Hospital|Laboratory/.test(x.Type)),sw=S.dirs.SocialWorkers.filter(x=>x.Status!=='Inactive');
+  el.innerHTML=`<datalist id="dlH">${hosp.map(x=>`<option value="${esc(x.Name)}">`).join('')}</datalist><datalist id="dlF">${S.dirs.Stakeholders.filter(x=>/Funeral/.test(x.Type)).map(x=>`<option value="${esc(x.Name)}">`).join('')}</datalist><datalist id="dlS">${sw.map(x=>`<option value="${esc(x.Name)}">`).join('')}</datalist>`;
+  if($('ReferredTo'))$('ReferredTo').setAttribute('list',cat&&S.cats[cat].form==='bur'?'dlF':'dlH');if($('AssessedBy'))$('AssessedBy').setAttribute('list','dlS');
+}
+$('dirSave').onclick=dirSave;$('dirClear').onclick=dirRender;$('dq').oninput=dirList;
+
+/* ---------- Assessment: intake + case study ---------- */
+const CCAT=['Children in Need of Special Protection','Youth in Need of Special Protection','Women in Especially Difficult Circumstances','Person with Disability','Senior Citizen','Family Head and other Needy Adult'];
+const SERV=['Counselling','Legal Assistance (Retainer Lawyer/Others)','Referral','Others'];
+const FTYPES=['Medical','Burial','Transportation','Educational','Food Subsidy','Others'];
+const FMODE=['Cash','Check','Guarantee Letter','Tickets (Bus/Boat)'];
+const SRC=['Regular Funds','Donation','Expanded AICS','Others'];
+const MTYPES=['Food Pack','Used Clothing','Hot Meal','Assistive Device'];
+const GRP=['BenGroup','Services','FinancialTypes','FinancialMode','FinancialSource','MaterialTypes','MaterialSource'];
+const AF_CASE=[['CaseNo','Case no. (auto)','ro'],['IntakeDate','Date','date'],['AdmissionMode','Mode of admission','select',['Walk-in','Referral']],['ReferringParty','Referring party'],
+['CaseCategory','Case category','select',['Medical / Financial Assistance','Burial / Financial Assistance','Transportation / Financial Assistance','Educational / Financial Assistance','Food Subsidy / Financial Assistance','Others']]];
+const AF_CLI=[['LastName','Last name'],['FirstName','First name'],['MiddleName','Middle name'],['ExtName','Ext. name (Jr, Sr)'],['Gender','Sex','select',GENDER],['DOB','Date of birth','date'],['Age','Age','ro'],
+['BirthPlace','Place of birth'],['CivilStatus','Civil status','select',CIVIL],['Religion','Religion'],['Nationality','Nationality','text','FILIPINO'],['Education','Highest educational attainment'],
+['Occupation','Skills / occupation'],['MonthlyIncome','Estimated monthly income','number'],['PhilHealth','PhilHealth no.'],['Contact','Contact #'],['MotherMaidenName',"Mother's maiden name"],['IDNumber','ID card number'],
+['RelationToBeneficiary','Relationship to beneficiary'],['Region','Region','text','III'],['Province','Province','text','Pampanga'],['District','District'],['City','City / municipality','text','Mabalacat City'],['Barangay','Barangay'],['Street','No. / street / purok']];
+const AF_BEN=[['BenLastName','Last name'],['BenFirstName','First name'],['BenMiddleName','Middle name'],['BenExtName','Ext. name (Jr, Sr)'],['BenGender','Sex','select',GENDER],['BenDOB','Date of birth','date'],['BenAge','Age','ro'],
+['BenBirthPlace','Place of birth'],['BenCivilStatus','Civil status','select',CIVIL],['BenProvince','Province','text','Pampanga'],['BenCity','City / municipality','text','Mabalacat City'],['BenBarangay','Barangay'],['BenStreet','No. / street / purok']];
+const AF_ASM=[['Diagnosis','Diagnosis / medical findings'],['ClientCategory','Client category (check only one)','select',CCAT],['ClientSubCategory','Client sub-category'],
+['ProblemPresented','Problem presented','area',4],['Background','Background information / socio-economic status','area',5],['SWAssessment',"Social worker's assessment",'area',4],['Recommendation','Recommendation','area',3]];
+const AF_SVC=[['ReferralSpecify','Referral (specify)'],['ServicesOther','Other services (specify)'],['FinancialSpecify','Financial assistance - specify'],['FinancialAmount','Amount of financial assistance to be extended (₱)','number'],
+['MaterialSpecify','Material assistance - specify'],['TotalAssistance','Total (₱)','number']];
+const AF_SIGN=[['PreparedBy','Prepared by / assessed by (social worker)'],['PreparedByTitle','Title'],['PreparedByLicense','License no.'],
+['NotedBy','Noted by','text','JOSEPHINE B. TANGLAO, RN, RSW, MMPM'],['NotedByTitle','Title','text','City Social Welfare and Development Officer'],['NotedByLicense','License no.','text','0020572']];
+const AS_ALL=[...AF_CASE,...AF_CLI,...AF_BEN,...AF_ASM,...AF_SVC,...AF_SIGN];
+const FAMF=[['LastName','Last name'],['FirstName','First name'],['MiddleName','Middle name'],['Gender','Sex','sel',['M','F']],['Age','Age'],['CivilStatus','Civil status','sel',CIVIL],['Relationship','Relationship'],['Education','Education'],['Occupation','Skills / occupation'],['MonthlyIncome','Est. monthly income']];
+
+const aF=([k,l,t='text',o])=>{const id='a_'+k;
+  if(t==='select')return `<div><label>${l}</label><select id="${id}"><option value=""></option>${o.map(x=>`<option>${esc(x)}</option>`).join('')}</select></div>`;
+  if(t==='area')return `<div style="grid-column:1/-1"><label>${l}</label><textarea id="${id}" rows="${o}"></textarea></div>`;
+  return `<div><label>${l}</label><input id="${id}" type="${t==='ro'?'text':t}" ${t==='ro'?'readonly':''} value="${typeof o==='string'?esc(o):''}"></div>`};
+const aG=(k,l,o)=>`<div style="grid-column:1/-1"><label>${l}</label><div class="chks" data-g="${k}">${o.map(x=>`<label class="chk"><input type="checkbox" value="${esc(x)}"> ${x}</label>`).join('')}</div></div>`;
+const aGrid=a=>`<div class="grid">${a.join('')}</div>`;
+const ageFrom=d=>{if(!d)return '';const b=new Date(d),n=new Date();let a=n.getFullYear()-b.getFullYear();if(n<new Date(n.getFullYear(),b.getMonth(),b.getDate()))a--;return a};
+const fmtMDY=d=>d?d.slice(5,7)+'-'+d.slice(8,10)+'-'+d.slice(0,4):'';
+const longDate=d=>d?new Date(d+'T00:00:00').toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}):'';
+const nm4=(l,f,m,e)=>[l?l+',':'',f,m,e].filter(Boolean).join(' ');
+const addr=(r,p='')=>[r[p+'Street'],r[p+'Barangay'],r[p+'City'],r[p+'District'],r[p+'Province'],r[p+'Region']].filter(Boolean).join(', ');
+
+function famRow(m={}){return `<tr>${FAMF.map(([k,l,t,o])=>`<td>${t==='sel'?`<select data-f="${k}"><option></option>${o.map(x=>`<option${m[k]===x?' selected':''}>${x}</option>`).join('')}</select>`:`<input data-f="${k}" value="${esc(m[k]||'')}" placeholder="${l}" style="min-width:90px">`}</td>`).join('')}<td><button class="btn red" data-fr="1">×</button></td></tr>`}
+function asShowList(){
+  $('asForm').style.display='none';$('asDone').style.display='none';$('asList').style.display='block';
+  $('asList').innerHTML='<div class="card"><div class="row" style="margin:0 0 10px;align-items:center"><input id="aq" placeholder="Search case no. or client name" style="max-width:340px"><button class="btn" data-an="1">+ New assessment</button></div><div class="scroll" id="asRows"></div></div>';
+  $('aq').oninput=asRows;asRows();window.scrollTo(0,0);
+}
+function asRows(){
+  const q=$('aq').value.toLowerCase(),L=[...S.intakes].reverse().filter(c=>!q||(c.CaseNo+' '+fullName(c)).toLowerCase().includes(q));
+  $('asRows').innerHTML=L.length?'<table class="t"><tr><th>Case no.</th><th>Date</th><th>Client</th><th>Case category</th><th>Documents</th><th></th></tr>'+
+   L.map(c=>`<tr><td>${esc(c.CaseNo)}</td><td>${esc(c.IntakeDate)}</td><td>${esc(fullName(c))}</td><td>${esc(c.CaseCategory)}</td><td>${esc(c.Generated)||'-'}</td>
+   <td style="white-space:nowrap"><button class="btn" data-open="${esc(c.CaseNo)}">Open</button> ${mine(c)?`<button class="btn alt" data-ae="${esc(c.CaseNo)}">Edit</button>`:''} ${can('ADMIN')?`<button class="btn red" data-ad="${esc(c.CaseNo)}">Delete</button>`:''}</td></tr>`).join('')+'</table>'
+   :'<p class="mute">No assessments yet. Click “New assessment” to start.</p>';
+}
+function showDone(c){asCur=c.CaseNo;$('asList').style.display='none';$('asForm').style.display='none';$('asDone').style.display='block';$('asDone').innerHTML=casePanel(c,false);window.scrollTo(0,0)}
+function asNew(){
+  asCur=null;$('asList').style.display='none';$('asDone').style.display='none';$('asForm').style.display='block';
+  const sec=(t,b)=>`<div class="card"><h2>${t}</h2>${b}</div>`;
+  $('asForm').innerHTML=sec('Case information <span id="asTitle" style="font-weight:400;color:var(--mute)"></span>',aGrid(AF_CASE.map(aF)))
+   +sec("I. Client's identifying information",aGrid(AF_CLI.map(aF)))
+   +sec("II. Beneficiary's identifying information",`<label class="chk"><input type="checkbox" id="a_BenIsClient"> Client is the beneficiary (copies the client's details)</label>${aGrid([aG('BenGroup','Special group',['NHTS','ISF','Disadvantaged Individual'])])}<div id="a_benBox" style="margin-top:8px">${aGrid(AF_BEN.map(aF))}</div>`)
+   +sec("III. Beneficiary's family composition",`<div class="scroll"><table class="t"><thead><tr>${FAMF.map(x=>`<th>${x[1]}</th>`).join('')}<th></th></tr></thead><tbody id="a_famB">${famRow()}</tbody></table></div><div class="row"><button class="btn alt" data-fa="1">+ Add family member</button></div>`)
+   +sec('IV. Assessment',aGrid(AF_ASM.map(aF))+'<div class="row"><button class="btn alt" id="a_draft">Auto-draft narrative (fills empty boxes only)</button></div>')
+   +sec('V. Recommended services and assistance',aGrid([aG('Services','Nature of services',SERV),aF(AF_SVC[0]),aF(AF_SVC[1]),aG('FinancialTypes','Financial assistance',FTYPES),aF(AF_SVC[2]),aF(AF_SVC[3]),aG('FinancialMode','Mode of assistance',FMODE),aG('FinancialSource','Source of assistance (financial)',SRC),aG('MaterialTypes','Material assistance',MTYPES),aF(AF_SVC[4]),aG('MaterialSource','Source of assistance (material)',SRC.slice(0,3)),aF(AF_SVC[5])]))
+   +sec('Signatories',aGrid(AF_SIGN.map(aF)))
+   +'<div class="card"><div class="row" style="margin:0"><button class="btn" id="a_save">Save assessment</button><button class="btn alt" data-v="assess">Cancel</button></div></div>';
+  $('a_IntakeDate').value=today();
+  $('a_DOB').onchange=$('a_BenDOB').onchange=asAge;$('a_BenIsClient').onchange=togBen;$('a_draft').onclick=asDraft;$('a_save').onclick=asSave;
+  $('a_PreparedBy').setAttribute('list','dlS');
+  $('a_PreparedBy').onchange=()=>{const w=S.dirs.SocialWorkers.find(x=>x.Name===$('a_PreparedBy').value);if(w){$('a_PreparedByTitle').value=w.Position||'';$('a_PreparedByLicense').value=w.LicenseNo||''}};
+  window.scrollTo(0,0);
+}
+function asAge(){$('a_Age').value=ageFrom($('a_DOB').value);$('a_BenAge').value=ageFrom($('a_BenDOB').value)}
+function togBen(){$('a_benBox').style.opacity=$('a_BenIsClient').checked?.4:1}
+function asEdit(cn){const c=S.intakes.find(x=>x.CaseNo===cn);show('assess');asNew();
+  AS_ALL.forEach(([k])=>{const e=$('a_'+k);if(e)e.value=c[k]||''});
+  GRP.forEach(k=>{const l=(c[k]||'').split('; ');document.querySelectorAll(`[data-g="${k}"] input`).forEach(i=>i.checked=l.includes(i.value))});
+  $('a_BenIsClient').checked=c.BenIsClient==='YES';asAge();togBen();
+  const fam=S.family.filter(m=>m.CaseNo===cn);$('a_famB').innerHTML=fam.length?fam.map(m=>famRow(m)).join(''):famRow();
+  $('asTitle').textContent='· editing '+cn}
+function asDraft(){
+  const v=k=>$('a_'+k).value.trim(),fm=v('Gender')==='Female',isC=$('a_BenIsClient').checked,who=isC?(fm?'herself':'himself'):'the beneficiary',
+    cat=(v('CaseCategory')||'financial assistance').toLowerCase(),amt=v('FinancialAmount')?', which entails a cost of '+money(v('FinancialAmount')):'',
+    nm=[v('FirstName'),v('LastName')].join(' ').toUpperCase(),set=(k,t)=>{if(!v(k))$('a_'+k).value=t};
+  set('ProblemPresented',`The client personally came into this office seeking social welfare services, particularly ${cat} for ${who}${v('Diagnosis')?', who is diagnosed with '+v('Diagnosis'):''}${amt}. However, the household lacks sufficient financial resources to cover the expenses; hence, this request for assistance.`);
+  set('SWAssessment',`Given the circumstances, the client is seeking support to avail of the ${cat}. The household is financially incapable and in need of assistance that would uplift their current predicament.`);
+  set('Recommendation',`In view of the above findings, the undersigned worker recommends that ${nm} avail of the ${cat} program${isC?' for '+who:''}, after finding eligible of the assistance.`);
+  toast('Draft added to the empty boxes. Please review and edit.','info');
+}
+function asCollect(){
+  const r={};AS_ALL.forEach(([k])=>r[k]=$('a_'+k).value.trim());
+  GRP.forEach(k=>r[k]=[...document.querySelectorAll(`[data-g="${k}"] input:checked`)].map(i=>i.value).join('; '));
+  ['LastName','FirstName','MiddleName','BenLastName','BenFirstName','BenMiddleName'].forEach(k=>r[k]=r[k].toUpperCase());
+  r.BenIsClient=$('a_BenIsClient').checked?'YES':'NO';
+  if(r.BenIsClient==='YES'){
+    Object.entries({BenLastName:'LastName',BenFirstName:'FirstName',BenMiddleName:'MiddleName',BenExtName:'ExtName',BenGender:'Gender',BenDOB:'DOB',BenAge:'Age',BenBirthPlace:'BirthPlace',BenCivilStatus:'CivilStatus',BenProvince:'Province',BenCity:'City',BenBarangay:'Barangay',BenStreet:'Street'}).forEach(([a,b])=>r[a]=r[b]);
+    if(!r.RelationToBeneficiary)r.RelationToBeneficiary=r.Gender==='Female'?'Herself':'Himself';
+  }
+  return r;
+}
+async function asSave(){
+  const r=asCollect(),fam=[...document.querySelectorAll('#a_famB tr')].map(tr=>{const m={};tr.querySelectorAll('[data-f]').forEach(e=>m[e.dataset.f]=e.value.trim());return m}).filter(m=>Object.values(m).some(Boolean));
+  if(!r.LastName||!r.FirstName)return notify("Client's last name and first name are required.");
+  try{const res=await run('saveIntake',r,fam),rec=res.rec,i=S.intakes.findIndex(x=>x.CaseNo===rec.CaseNo);
+    i>-1?S.intakes[i]=rec:S.intakes.push(rec);S.family=S.family.filter(m=>m.CaseNo!==rec.CaseNo).concat(res.fam);
+    toast('Saved '+rec.CaseNo);renderAll();showDone(rec)}
+  catch(e){notify('Could not save: '+(e.message||e))}
+}
+function prefill(c){   // fills the guarantee-letter form from the assessment
+  const set=(k,v)=>{const e=$(k);if(e&&v)e.value=v},bur=S.cats[cat].form==='bur';
+  ['LastName','FirstName','MiddleName','ExtName','DOB','BirthPlace','Gender','CivilStatus','Street','Barangay','City','Religion','Occupation','Contact','MotherMaidenName','MonthlyIncome','IDNumber'].forEach(k=>set(k,c[k]));
+  set('AssessedBy',c.PreparedBy);set('AmountApproved',c.FinancialAmount);
+  if(bur){set('RelationToDeceased',c.RelationToBeneficiary);   // the assessment's beneficiary is the deceased
+    [['DeceasedLastName','BenLastName'],['DeceasedFirstName','BenFirstName'],['DeceasedMiddleName','BenMiddleName'],['DeceasedExtName','BenExtName'],['DeceasedDOB','BenDOB'],['DeceasedGender','BenGender'],['DeceasedCivilStatus','BenCivilStatus'],['DeceasedStreet','BenStreet'],['DeceasedBarangay','BenBarangay'],['DeceasedCity','BenCity']].forEach(([a,b])=>set(a,c[b]));calcDec()}
+  else{set('RelationToPatient',c.RelationToBeneficiary);
+    if(c.BenIsClient==='YES')$('ClientIsPatient').checked=true;
+    else{set('PatientName',nm4(c.BenLastName,c.BenFirstName,c.BenMiddleName,c.BenExtName));set('PatientAge',c.BenAge);set('PatientGender',c.BenGender);set('PatientStreet',c.BenStreet);set('PatientBarangay',c.BenBarangay);set('PatientCity',c.BenCity)}
+    togglePatient()}
+  calcAge();
+}
+
+/* ---------- Printable: General Intake Sheet and Case Study ---------- */
+function doPrint(html){$('gl').innerHTML=html;const im=[...$('gl').querySelectorAll('img')];
+  Promise.all(im.map(i=>i.complete?1:new Promise(ok=>{i.onload=i.onerror=ok}))).then(()=>setTimeout(()=>window.print(),200))}
+const ck=(l,o)=>(l||'').split('; ').includes(o)?'☑':'☐';
+const cl=(l,v,sp)=>`<td${sp?` colspan="${sp}"`:''}><small>${l}</small><b>${esc(v||'')}</b></td>`;
+const opts=(l,a)=>a.map(o=>`${ck(l,o)} ${o}`).join('<br>');
+function printIntake(c){
+  const fam=S.family.filter(m=>m.CaseNo===c.CaseNo);while(fam.length<4)fam.push({});const same=c.BenIsClient==='YES';
+  doPrint(`<div class="doc"><div style="display:flex;justify-content:space-between;align-items:center;margin:4px 0"><div>Republic of the Philippines<br>Province of Pampanga<br>Mabalacat City<br><b>CITY SOCIAL WELFARE AND DEVELOPMENT OFFICE</b></div><div style="font-size:22px;font-weight:bold">General Intake Sheet</div><div>Date: <b>${fmtMDY(c.IntakeDate)}</b><br>Case no.: <b>${esc(c.CaseNo)}</b></div></div>
+  <div class="sec">I. Client's Identifying Information</div><table>
+   <tr>${cl("1. Client's Name*",fullName(c),3)}${cl('2. Sex*',c.Gender)}</tr>
+   <tr>${cl('3. Date of Birth*',fmtMDY(c.DOB))}${cl('4. Present Address*',addr(c),3)}</tr>
+   <tr>${cl('5. Place of Birth*',c.BirthPlace,2)}${cl('6. Relationship to Beneficiary*',c.RelationToBeneficiary,2)}</tr>
+   <tr>${cl('7. Civil Status*',c.CivilStatus)}${cl('8. Religion*',c.Religion)}${cl('9. Nationality*',c.Nationality)}${cl('Age',c.Age)}</tr>
+   <tr>${cl('10. Highest Educational Attainment',c.Education)}${cl('11. Skills / Occupation*',c.Occupation)}${cl('12. Estimated Monthly Income*',c.MonthlyIncome,2)}</tr>
+   <tr>${cl('13. PhilHealth No.*',c.PhilHealth)}${cl('14. Mode of Admission*',c.AdmissionMode)}${cl('15. Referring Party',c.ReferringParty)}${cl('16. Contact #',c.Contact)}</tr></table>
+  <div class="sec">II. Beneficiary's Identifying Information</div><table>
+   <tr><td colspan="4">${['NHTS','ISF','Disadvantaged Individual'].map(o=>`${ck(c.BenGroup,o)} ${o}`).join(' &nbsp;&nbsp; ')}</td></tr>
+   <tr>${cl("1. Beneficiary's Name*",nm4(c.BenLastName,c.BenFirstName,c.BenMiddleName,c.BenExtName),3)}${cl('2. Sex*',c.BenGender)}</tr>
+   <tr>${cl('3. Date of Birth*',fmtMDY(c.BenDOB))}${cl('4. Present Address*',same?'SAME AS ABOVE':addr(c,'Ben'),3)}</tr>
+   <tr>${cl('5. Place of Birth*',c.BenBirthPlace,2)}${cl('6. Civil Status*',c.BenCivilStatus,2)}</tr></table>
+  <div class="sec">III. Beneficiary's Family Composition</div><table><tr><th>Last Name</th><th>First Name</th><th>Middle Name</th><th>Sex</th><th>Age</th><th>Civil Status</th><th>Relationship</th><th>Highest Educ. Attainment</th><th>Skills / Occupation</th><th>Est. Monthly Income</th></tr>
+   ${fam.map(m=>'<tr>'+FAMF.map(([k])=>`<td style="height:15px">${esc(m[k])}</td>`).join('')+'</tr>').join('')}</table>
+  <div class="sec">IV. Assessment</div><table><tr><th style="width:33%">1. Problem Presented</th><th style="width:33%">2. Social Worker's Assessment</th><th>3. Client Category (check only one)</th></tr>
+   <tr><td style="height:190px;white-space:pre-wrap">${esc(c.ProblemPresented)}</td><td style="white-space:pre-wrap">${esc(c.SWAssessment)}</td><td>${CCAT.map(x=>`${c.ClientCategory===x?'☑':'☐'} ${x}`).join('<br>')}<br><br>4. Client Sub-Category:<br><b>${esc(c.ClientSubCategory)}</b></td></tr></table>
+  <div class="sec">V. Recommended Services and Assistance</div><table>
+   <tr><td colspan="2"><b>1. Nature of Services / Assistance</b><br>${SERV.map(o=>`${ck(c.Services,o)} ${o}${o==='Referral'&&c.ReferralSpecify?' ('+esc(c.ReferralSpecify)+')':''}${o==='Others'&&c.ServicesOther?': '+esc(c.ServicesOther):''}`).join(' &nbsp;&nbsp; ')}</td></tr>
+   <tr><td style="width:55%"><b>Financial Assistance</b><br>${opts(c.FinancialTypes,FTYPES)}<br>Specify: ${esc(c.FinancialSpecify)}</td>
+    <td><b>Amount of Financial Assistance to be extended</b><br><span style="font-size:14px;font-weight:bold">${c.FinancialAmount?money(c.FinancialAmount):''}</span><br><br>${opts(c.FinancialMode,FMODE)}<br><b>Source of Assistance</b><br>${opts(c.FinancialSource,SRC)}</td></tr>
+   <tr><td><b>Material Assistance</b><br>${opts(c.MaterialTypes,MTYPES)}<br>Specify: ${esc(c.MaterialSpecify)}<br><b>Source of Assistance</b><br>${opts(c.MaterialSource,SRC.slice(0,3))}</td>
+    <td><b>Total:</b> ${c.TotalAssistance?money(c.TotalAssistance):''}<br><br><br>Client's Signature: ______________________ &nbsp; Thumbmark: ☐<br><br>Assessed By: <b>${esc(c.PreparedBy)}</b></td></tr></table></div>`);
+}
+function printStudy(c){
+  const fam=S.family.filter(m=>m.CaseNo===c.CaseNo),kv=(l,v)=>`<tr><td style="width:230px">${l}</td><td style="width:14px">:</td><td>${esc(v)}</td></tr>`,
+    nm=[c.FirstName,c.MiddleName,c.LastName,c.ExtName].filter(Boolean).join(' ').toUpperCase(),inc=o=>[o.Occupation,o.MonthlyIncome].filter(Boolean).join(' / ');
+  doPrint(`<div class="doc cs">${S.images.header?`<img src="${S.images.header}" style="width:100%;display:block">`:''}
+  <h2>SOCIAL CASE ASSESSMENT REPORT</h2><div style="text-align:center">(Case No. ${esc(c.CaseNo)})<br>${esc(longDate(c.IntakeDate))}</div>
+  <h4>I. IDENTIFYING INFORMATION OF CLIENT</h4><table class="nb">${kv('Name of the client',nm)}${kv('Age',c.Age?c.Age+' years old':'')}${kv('Address',addrS(c))}${kv('Date of birth',longDate(c.DOB))}${kv('Place of birth',c.BirthPlace)}${kv('Civil status',c.CivilStatus)}${kv('Religion',c.Religion)}${kv('Highest educational attainment',c.Education)}${kv('Occupation/Income',inc(c)||'N/A')}${kv('Contact No.',c.Contact)}${kv('Relation to beneficiary',c.RelationToBeneficiary)}${kv('Diagnosis',c.Diagnosis)}${kv('Case category',c.CaseCategory)}</table>
+  <h4>II. FAMILY COMPOSITION</h4><table><tr><th>Name</th><th>Age/Sex</th><th>Relationship to Beneficiary</th><th>CS</th><th>Highest Educational Attainment</th><th>Occupation &amp; Income</th></tr>
+   ${fam.length?fam.map(m=>`<tr><td>${esc([m.FirstName,m.MiddleName,m.LastName].filter(Boolean).join(' '))}</td><td>${esc([m.Age,m.Gender].filter(Boolean).join('/'))}</td><td>${esc(m.Relationship)}</td><td>${esc((m.CivilStatus||'')[0]||'')}</td><td>${esc(m.Education)}</td><td>${esc(inc(m))}</td></tr>`).join(''):'<tr><td colspan="6">None</td></tr>'}</table>
+  <h4>PROBLEM PRESENTED</h4><p>${esc(c.ProblemPresented)}</p>
+  <h4>I. BACKGROUND INFORMATION / SOCIO ECONOMIC STATUS</h4><p>${esc(c.Background)}</p>
+  <h4>II. ASSESSMENT</h4><p>${esc(c.SWAssessment)}</p>
+  <h4>III. RECOMMENDATION</h4><p>${esc(c.Recommendation)}</p>
+  <table class="nb" style="margin-top:20px"><tr><td style="width:50%"><b>Prepared By:</b></td><td><b>Noted By:</b></td></tr><tr><td style="height:38px"></td><td></td></tr>
+   <tr><td><b>${esc(c.PreparedBy)}</b><br>${esc(c.PreparedByTitle)}<br>${c.PreparedByLicense?'License No. '+esc(c.PreparedByLicense):''}</td><td><b>${esc(c.NotedBy)}</b><br>${esc(c.NotedByTitle)}<br>${c.NotedByLicense?'License No. '+esc(c.NotedByLicense):''}</td></tr></table></div>`);
+}
+
+const addrS=r=>[r.Street,r.Barangay,r.City,r.Province].filter(Boolean).join(', ');
+const ord=n=>n+(['th','st','nd','rd'][(n%100>>3^1&&n%10<4)?n%10:0]||'th');
+function printCert(c){   // Social Worker's Certification (indigency)
+  const d=new Date(),fm=c.Gender==='Female',own=c.BenIsClient==='YES',rel=(c.RelationToBeneficiary||'').toLowerCase(),
+    ben=[c.BenFirstName,c.BenMiddleName,c.BenLastName,c.BenExtName].filter(Boolean).join(' ').toUpperCase(),
+    nm=[c.FirstName,c.MiddleName,c.LastName,c.ExtName].filter(Boolean).join(' ').toUpperCase(),
+    purpose=((c.CaseCategory||'financial').split('/')[0].trim().toLowerCase())+' assistance',
+    forWho=own?(fm?'herself':'himself'):`${fm?'her':'his'} ${rel||'dependent'} <b>${esc(ben)}</b>`,
+    income=!own&&/son|daughter|child/.test(rel)?"parent's":"family's",
+    mon=d.toLocaleDateString('en-US',{month:'long'});
+  const p='text-align:justify;text-indent:.6in;line-height:2;margin:0 0 18px';
+  doPrint(`<div class="gl" style="font-size:15px">${S.images.header?`<img class="hf" src="${S.images.header}">`:''}
+  <div class="body" style="padding:24px 64px;min-height:6.4in">
+   <h2 style="text-align:center;letter-spacing:10px;font-size:22px;margin:26px 0 34px">CERTIFICATION</h2>
+   <p style="margin:0 0 18px"><b>TO WHOM IT MAY CONCERN:</b></p>
+   <p style="${p}">This is to certify that based on the interview conducted and the documents submitted (Please see documents attached), <b>${esc(nm)}</b>, ${esc(c.Age)} years of age resident of ${esc(addrS(c))} for ${forWho} whose ${income} monthly income falls below the poverty threshold and belongs to one of the indigent families of this community.</p>
+   <p style="${p}">This certification is issued this ${ord(d.getDate())} day of ${mon} ${d.getFullYear()} at Mabalacat City, Pampanga upon the request of the above-named person for ${esc(purpose)} and for whatever legal purposes it may serve.</p>
+   <div style="margin:80px 0 0 auto;width:62%;text-align:center"><b>${esc(c.NotedBy)}</b><br>${esc(c.NotedByTitle)}</div></div>
+   <div class="ftw"><img src="${S.images.footer}"></div></div>`);
+}
+
+/* ---------- Availment rule: once per category every 3 months ---------- */
+const addMonths=(iso,n)=>{const p=iso.split('-').map(Number),d=new Date(p[0],p[1]-1+n,1),last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();d.setDate(Math.min(p[2],last));
+  return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)};
+const ident=r=>[r.LastName,r.FirstName,r.DOB].map(x=>(x||'').trim().toUpperCase()).join('|');
+function eligibility(c,catKey,ignoreId,on=today()){   // same client + same category; cancelled letters do not count
+  const id=ident(c),L=S.records.filter(r=>r.Category===catKey&&r.Status!=='Cancelled'&&r.ControlID!==ignoreId&&ident(r)===id).sort((a,b)=>(b.DateToday||'').localeCompare(a.DateToday||''));
+  if(!L.length)return{ok:true};
+  const next=addMonths(L[0].DateToday,S.gap||3);return{ok:on>=next,last:L[0],next};
+}
+
+/* ---------- Access control: gate, roles, users ---------- */
+let ME={};
+const RANK={USER:1,ADMIN:2,SUPER:3},ROLE_LABEL={USER:'Social Worker',ADMIN:'Admin',SUPER:'Super Admin'};
+const can=r=>(RANK[ME.role]||0)>=RANK[r];
+const mine=r=>can('ADMIN')||(!!ME.email&&(r.CreatedBy||'').toLowerCase()===ME.email.toLowerCase());
+let GE='';   // the e-mail typed on the sign-in screen
+const noCode=r=>r==='pending'?'Your access request is still waiting for approval. You will get an e-mail once it is approved.'
+  :r==='denied'?'Your access request was denied. Please contact the Super Admin.'
+  :r==='disabled'?'This account is turned off. Please contact the Super Admin.'
+  :'This e-mail is not registered, so no code was sent. Click "Request access" below, or use the e-mail the Super Admin added.';
+function gate(state,msg){
+  const box=(t,b)=>`<div class="gbox"><div class="ghead"><div class="seal">AICS</div><div><b>AICS · CSWDO Mabalacat City</b><span>${t}</span></div></div><div class="gbody">${b}</div></div>`,
+    note=msg?`<p class="gmail">${esc(msg)}</p>`:'';
+  const M={
+    loading:box('Please wait','<p>Loading…</p>'),
+    login:box('Sign in',`${note}<p>Enter your registered e-mail address. We will send a 6-digit code to it.</p><div class="gform"><label>E-mail</label><input id="gEmail" type="email" value="${esc(GE)}" autocomplete="email"></div><div class="row"><button class="btn" id="gSend">Send me a code</button></div><p class="gl2">No access yet? <a href="#" id="gReq">Request access</a></p>`),
+    code:box('Enter your code',`${note}<p>We sent a 6-digit code to <b>${esc(GE)}</b>. It works for 10 minutes. If it does not arrive, check your Spam folder.</p><div class="gform"><label>6-digit code</label><input id="gCode" inputmode="numeric" maxlength="6" autocomplete="one-time-code"></div><div class="row"><button class="btn" id="gVerify">Sign in</button><button class="btn alt" id="gResend">Send a new code</button></div><p class="gl2"><a href="#" id="gBack">Use a different e-mail</a></p>`),
+    request:box('Request access',`${note}<p>This system is for authorized CSWDO staff only. Send a request and the Super Admin will review it. You will get an e-mail once it is approved.</p><div class="gform"><label>Full name</label><input id="rqName"><label>E-mail (Google account)</label><input id="rqEmail" type="email" value="${esc(GE)}"><label>Position / office</label><input id="rqPos"><label>Message (optional)</label><textarea id="rqMsg" rows="2"></textarea></div><div class="row"><button class="btn" id="rqSend">Send request</button><button class="btn alt" id="gBack">Back</button></div>`),
+    requested:box('Request sent',`<p>Your request was sent to the Super Admin. When it is approved you will receive an e-mail, and then you can sign in with your e-mail address.</p><div class="row"><button class="btn" id="gBack">Back to sign in</button></div>`)
+  };
+  $('gate').innerHTML=M[state]||M.login;$('gate').style.display='flex';
+  const on=(id,f)=>{if($(id))$(id).onclick=async ev=>{ev.preventDefault();const b=ev.currentTarget;if(b.tagName==='BUTTON')b.disabled=true;try{await f()}finally{if(b.tagName==='BUTTON')b.disabled=false}}};
+  const mail=()=>$('gEmail').value.trim().toLowerCase(),ok=m=>/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m);
+  on('gSend',async()=>{GE=mail();if(!ok(GE))return notify('Enter a valid e-mail address.');
+    try{const r=await raw('authSendCode',GE);if(r&&r.sent===false)return gate('login',noCode(r.reason));gate('code',r&&r.ver?'A code was sent to '+GE+' (server '+r.ver+'). Check your Inbox and Spam folder.':'OLD SERVER VERSION: the new Code.gs is not deployed yet. In Apps Script use Deploy > Manage deployments > Edit > New version.')}catch(e){notify('Could not send the code: '+(e.message||e))}});
+  on('gVerify',async()=>{const c=$('gCode').value.trim();if(c.length!==6)return notify('Enter the 6-digit code from your e-mail.');
+    try{const r=await raw('authVerifyCode',GE,c);saveTok(r.token);ME=r.me;await loadApp()}catch(e){notify('Could not sign in: '+(e.message||e))}});
+  on('gResend',async()=>{try{const r=await raw('authSendCode',GE);if(r&&r.sent===false)return gate('login',noCode(r.reason));toast('A new code was sent.','info')}catch(e){notify('Could not send the code: '+(e.message||e))}});
+  on('gReq',async()=>{GE=mail()||GE;gate('request')});
+  on('gBack',async()=>gate('login'));
+  on('rqSend',async()=>{const n=$('rqName').value.trim(),m=$('rqEmail').value.trim().toLowerCase();
+    if(!n)return notify('Please enter your full name.');if(!ok(m))return notify('Enter a valid e-mail address.');
+    try{GE=m;await raw('authRequestAccess',n,m,$('rqPos').value.trim(),$('rqMsg').value.trim());gate('requested')}catch(e){notify('Could not send request: '+(e.message||e))}});
+}
+async function boot(){
+  if(!TOKEN)return gate('login');
+  gate('loading');
+  try{ME=await run('whoAmI')}catch(e){if(!/Session ended/.test(e.message||''))gate('login');return}
+  if(ME.status==='active')return loadApp();
+  saveTok('');gate('login','This account does not have active access. Request access or contact the Super Admin.');
+}
+async function loadApp(){
+  let d;try{d=await run('getInit')}catch(e){if(!/Session ended/.test(e.message||'')){saveTok('');gate('login','Could not open the system: '+(e.message||e))}return}
+  S=d;ME=Object.assign(ME,d.me);applyRole();$('gate').style.display='none';renderAll();pick();dirRender();
+}
+function applyRole(){
+  const m=$('meBox');m.style.display='block';
+  m.innerHTML=`<b>${esc(ME.name||ME.email)}</b><span class="role r${ME.role}">${ROLE_LABEL[ME.role]}</span><small>${esc(ME.email)}</small><a href="#" id="signOut">Sign out</a>`;
+  $('signOut').onclick=async ev=>{ev.preventDefault();try{await raw('authSignOut',TOKEN)}catch(e){}
+    saveTok('');ME={};GE='';S.records=[];S.intakes=[];S.family=[];gate('login','You have signed out.')};
+  $('navUsers').style.display=can('SUPER')?'':'none';
+}
+let uTab='users',U=[],Rq=[],Lg=[];
+async function usersLoad(){
+  try{[U,Rq,Lg]=await Promise.all([run('getUsers'),run('getRequests'),run('getLog')])}catch(e){return notify('Could not load users: '+(e.message||e))}
+  usersRender();
+}
+async function userSave(u,msg){try{await run('saveUser',u);toast(msg);usersLoad()}catch(e){notify('Could not save: '+(e.message||e))}}
+document.addEventListener('change',async e=>{
+  const s=e.target.closest('[data-ur]');if(!s)return;
+  const u=U.find(x=>x.Email===s.dataset.ur);await userSave(Object.assign({},u,{Role:s.value}),'Role updated');
+});
+function usersRender(){
+  const pend=Rq.filter(r=>r.Status==='Pending').length,cnt=r=>U.filter(u=>u.Role===r&&u.Status==='Active').length;
+  $('usersTabs').innerHTML=[['users',`Users (${U.length})`],['reqs','Access requests'+(pend?` (${pend} pending)`:'')],['log','Activity log']].map(([k,l])=>`<button class="btn ${k===uTab?'':'alt'}" data-ut="${k}">${l}</button>`).join('');
+  const rs=(sel,at)=>`<select ${at}>${Object.entries(ROLE_LABEL).map(([k,l])=>`<option value="${k}"${k===sel?' selected':''}>${l}</option>`).join('')}</select>`;
+  let b='';
+  if(uTab==='users')b=`<div class="card"><h2>Add a user</h2><p class="mute">They sign in with a 6-digit code sent to this e-mail. Active: ${cnt('SUPER')} Super Admin · ${cnt('ADMIN')} Admin · ${cnt('USER')} Social Worker</p>
+    <div class="grid"><div><label>Google email</label><input id="uEmail" type="email" placeholder="name@gmail.com"></div><div><label>Full name</label><input id="uName"></div><div><label>Position / office</label><input id="uPos"></div><div><label>Role</label>${rs('USER','id="uRole"')}</div></div>
+    <div class="row"><button class="btn" data-ua="1">Add user</button></div></div>
+    <div class="card"><div class="scroll"><table class="t"><tr><th>Name</th><th>Google email</th><th>Position</th><th>Role</th><th>Status</th><th>Last sign-in</th><th></th></tr>
+    ${U.map(u=>`<tr><td>${esc(u.Name)}</td><td>${esc(u.Email)}</td><td>${esc(u.Position)}</td><td>${rs(u.Role,`data-ur="${esc(u.Email)}"`)}</td><td>${esc(u.Status)}</td><td>${esc(u.LastLogin)}</td>
+    <td style="white-space:nowrap"><button class="btn alt" data-us="${esc(u.Email)}">${u.Status==='Active'?'Disable':'Enable'}</button> <button class="btn red" data-ud="${esc(u.Email)}">Delete</button></td></tr>`).join('')}</table></div></div>`;
+  if(uTab==='reqs')b=`<div class="card"><h2>Access requests</h2><div class="scroll">${Rq.length?`<table class="t"><tr><th>Name</th><th>Google email</th><th>Position</th><th>Message</th><th>Requested</th><th>Status</th><th>Role / action</th></tr>
+    ${Rq.map(r=>`<tr><td>${esc(r.Name)}</td><td>${esc(r.Email)}</td><td>${esc(r.Position)}</td><td>${esc(r.Message)}</td><td>${esc(r.RequestedAt)}</td><td>${esc(r.Status)}</td>
+    <td style="white-space:nowrap">${r.Status==='Pending'?`${rs('USER','')} <button class="btn" data-ra="${esc(r.Email)}">Approve</button> <button class="btn red" data-rd="${esc(r.Email)}">Deny</button>`:esc(r.ReviewedBy?'by '+r.ReviewedBy:'')}</td></tr>`).join('')}</table>`:'<p class="mute">No requests yet.</p>'}</div></div>`;
+  if(uTab==='log')b=`<div class="card"><h2>Recent activity</h2><div class="scroll">${Lg.length?`<table class="t"><tr><th>Time</th><th>User</th><th>Role</th><th>Action</th><th>Target</th></tr>${Lg.map(l=>`<tr><td>${esc(l.Time)}</td><td>${esc(l.Email)}</td><td>${esc(l.Role)}</td><td>${esc(l.Action)}</td><td>${esc(l.Target)}</td></tr>`).join('')}</table>`:'<p class="mute">Nothing logged yet.</p>'}</div></div>`;
+  $('usersBody').innerHTML=b;
+}
+
+/* ---------- Start ---------- */
+boot();
+</script>
+</body>
+</html>
