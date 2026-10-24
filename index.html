@@ -160,6 +160,10 @@ textarea{resize:vertical}
 .gl .sig div{width:46%;border-top:1px solid #000;font-weight:bold;padding-top:2px}
 .gl .amt{color:#1a1ac8;font-weight:bold}
 .ix{position:relative;width:612pt;height:935pt;overflow:hidden;background:#fff;color:#000;font-family:Calibri,Carlito,Arial,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact;page-break-inside:avoid}
+.ix i,.ix b,.ix u{position:absolute;display:block;margin:0;padding:0;font-style:normal;font-weight:400;text-decoration:none;background:none;border:0}
+.ix i{background:#000}
+.ix b{border:.5pt solid #000}
+.ix u{white-space:nowrap;line-height:1;color:#000}
 .ixt{position:absolute;display:flex;align-items:center;overflow:hidden;line-height:1.05}
 .ixm{position:absolute;overflow:hidden;white-space:pre-wrap;line-height:1.15;word-break:break-word}
 .ix2{page-break-before:always;width:540pt;margin:0 auto;padding:36pt 0;font-family:Calibri,Carlito,Arial,sans-serif;font-size:9pt;color:#000}
@@ -243,13 +247,14 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;',
 let TOKEN='';try{TOKEN=localStorage.getItem('aicsTok')||''}catch(e){}   // stays signed in on this device
 const saveTok=t=>{TOKEN=t||'';try{t?localStorage.setItem('aicsTok',t):localStorage.removeItem('aicsTok')}catch(e){}};
 /* Where the Apps Script back end lives. Used only when this page is hosted outside Google (GitHub Pages / Netlify). */
-const API_URL='https://script.google.com/macros/s/AKfycbw9bi4AZtQ4W35K_o9QeWmZ7H2efZj9tKa7NTYUqUzvbsJ3FHmnqG_iEmLDBpbO-CwVkg/exec';
+const API_URL='https://script.google.com/macros/s/AKfycbx0ibW5ovINBtmzHFzlh3kjUi27Bo37e2alsz76c3tArkIF4dQfRvatnZJphYK9KgnW/exec';
 const INSIDE_GOOGLE=typeof google!=='undefined'&&google.script&&google.script.run;
-const raw=(fn,...a)=>INSIDE_GOOGLE
+const withTimeout=(p,ms)=>new Promise((ok,no)=>{const t=setTimeout(()=>no(new Error('The server did not respond in time. Check your internet connection, then try again. If this keeps happening, open the hosted page link instead of the script.google.com link.')),ms);p.then(v=>{clearTimeout(t);ok(v)},e=>{clearTimeout(t);no(e)})});
+const raw=(fn,...a)=>withTimeout(INSIDE_GOOGLE
   ?new Promise((ok,no)=>google.script.run.withSuccessHandler(ok).withFailureHandler(no)[fn](...a))
   :fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({rpc:fn,args:a})})   // text/plain = no CORS preflight
     .then(r=>r.json().catch(()=>{throw new Error('The server did not answer correctly. Check that the latest Code.gs is deployed as a New version.')}))
-    .then(j=>{if(!j.ok)throw new Error(j.error||'Request failed');return j.result});   // public calls (sign-in, request access)
+    .then(j=>{if(!j.ok)throw new Error(j.error||'Request failed');return j.result}),45000);   // public calls (sign-in, request access)
 const run=(fn,...a)=>raw('api',TOKEN,fn,a).catch(e=>{   // every other call carries the sign-in token
   if(/SESSION_EXPIRED/.test((e&&e.message)||'')){saveTok('');ME={};gate('login','Your session ended. Please sign in again.');throw new Error('Session ended. Please sign in again.')}
   throw e});
@@ -702,7 +707,499 @@ const cl=(l,v,sp)=>`<td${sp?` colspan="${sp}"`:''}><small>${l}</small><b>${esc(v
 const opts=(l,a)=>a.map(o=>`${ck(l,o)} ${o}`).join('<br>');
 /* ---------- General Intake Sheet: drawn exactly like the CSWDO form (8.5 x 13 in, long bond paper) ---------- */
 const LGU_URL='https://raw.githubusercontent.com/tanglaorichmondcswd-svg/MABALACAT-CITY-LOGO/b5e4b788b741ceb5c5dbdbf81c9dd9d55cb62199/LGU.png';
-const IX_BG=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 612 936" width="612pt" height="936pt" style="position:absolute;left:0;top:0"><g fill="#000"><rect x="15.0" y="73.6" width="572.0" height="15.4"/><rect x="15.0" y="226.9" width="572.0" height="16.0"/><rect x="15.0" y="331.3" width="572.0" height="15.4"/><rect x="15.0" y="405.9" width="572.0" height="16.0"/><rect x="15.0" y="552.3" width="572.0" height="17.0"/><rect x="14.6" y="8.4" width="0.8" height="65.6"/><rect x="521.2" y="30.8" width="0.8" height="10.8"/><rect x="586.4" y="9.2" width="0.8" height="64.8"/><rect x="453.9" y="30.0" width="0.8" height="11.6"/><rect x="14.6" y="88.4" width="0.8" height="138.8"/><rect x="586.4" y="89.2" width="0.8" height="138.0"/><rect x="521.2" y="89.2" width="0.8" height="31.0"/><rect x="152.8" y="120.2" width="0.9" height="26.4"/><rect x="14.6" y="242.3" width="0.8" height="89.4"/><rect x="152.8" y="286.8" width="0.9" height="28.1"/><rect x="243.5" y="163.4" width="0.8" height="63.8"/><rect x="453.9" y="163.4" width="0.8" height="63.8"/><rect x="521.2" y="258.2" width="0.8" height="28.7"/><rect x="586.4" y="243.0" width="0.8" height="88.7"/><rect x="14.6" y="346.1" width="0.8" height="15.4"/><rect x="15.8" y="361.5" width="138.3" height="1.6"/><rect x="152.8" y="346.9" width="0.9" height="14.6"/><rect x="14.2" y="361.5" width="1.6" height="12.8"/><rect x="15.8" y="372.7" width="138.3" height="1.6"/><rect x="152.4" y="363.1" width="1.6" height="11.2"/><rect x="14.6" y="374.3" width="0.8" height="32.0"/><rect x="171.1" y="346.9" width="0.8" height="59.4"/><rect x="453.9" y="346.9" width="0.8" height="59.4"/><rect x="586.4" y="346.9" width="0.8" height="59.4"/><rect x="14.6" y="421.3" width="0.8" height="131.4"/><rect x="586.4" y="422.1" width="0.8" height="93.6"/><rect x="171.1" y="422.1" width="0.8" height="130.6"/><rect x="453.9" y="422.1" width="0.8" height="130.6"/><rect x="521.2" y="346.9" width="0.8" height="59.4"/><rect x="152.8" y="374.3" width="0.9" height="32.0"/><rect x="243.5" y="346.9" width="0.8" height="59.4"/><rect x="14.6" y="568.7" width="0.8" height="311.9"/><rect x="586.4" y="569.5" width="0.8" height="311.1"/><rect x="453.9" y="591.1" width="0.8" height="75.7"/><rect x="521.2" y="601.1" width="0.8" height="11.6"/><rect x="542.6" y="30.8" width="0.8" height="10.8"/><rect x="152.8" y="731.5" width="0.9" height="64.7"/><rect x="243.5" y="731.5" width="0.8" height="64.7"/><rect x="171.1" y="591.1" width="0.8" height="75.7"/><rect x="220.1" y="346.9" width="0.8" height="59.4"/><rect x="15.4" y="8.4" width="571.8" height="0.8"/><rect x="454.8" y="30.0" width="132.4" height="0.8"/><rect x="454.8" y="40.8" width="132.4" height="0.8"/><rect x="15.4" y="73.2" width="571.8" height="0.8"/><rect x="15.4" y="88.4" width="571.8" height="0.8"/><rect x="15.4" y="119.4" width="571.8" height="0.8"/><rect x="15.4" y="145.8" width="571.8" height="0.8"/><rect x="15.4" y="162.6" width="571.8" height="0.8"/><rect x="15.4" y="184.2" width="571.8" height="0.8"/><rect x="15.4" y="203.9" width="571.8" height="0.7"/><rect x="15.4" y="226.5" width="571.8" height="0.7"/><rect x="15.4" y="242.2" width="571.8" height="0.8"/><rect x="15.4" y="257.5" width="571.8" height="0.7"/><rect x="15.4" y="286.1" width="571.8" height="0.8"/><rect x="15.4" y="314.1" width="571.8" height="0.8"/><rect x="15.4" y="330.9" width="571.8" height="0.8"/><rect x="15.4" y="346.1" width="571.8" height="0.8"/><rect x="154.1" y="361.9" width="433.1" height="0.8"/><rect x="154.1" y="373.1" width="433.1" height="0.8"/><rect x="15.4" y="383.9" width="571.8" height="0.8"/><rect x="15.4" y="394.7" width="571.8" height="0.8"/><rect x="15.4" y="405.5" width="571.8" height="0.8"/><rect x="15.4" y="421.3" width="571.8" height="0.8"/><rect x="15.4" y="432.1" width="571.8" height="0.8"/><rect x="454.8" y="514.9" width="132.4" height="0.8"/><rect x="15.4" y="551.9" width="439.4" height="0.8"/><rect x="15.4" y="568.7" width="571.8" height="0.8"/><rect x="15.4" y="590.3" width="571.8" height="0.8"/><rect x="522.0" y="601.1" width="65.2" height="0.8"/><rect x="522.0" y="611.9" width="65.2" height="0.8"/><rect x="171.8" y="666.0" width="415.4" height="0.8"/><rect x="15.4" y="730.8" width="571.8" height="0.7"/><rect x="15.4" y="879.8" width="571.8" height="0.8"/><rect x="240.1" y="39.9" width="156.9" height="1.2"/></g><g stroke="#000" stroke-width=".6" fill="none"><line x1="181.6" y1="183.0" x2="229.3" y2="183.0"/><line x1="516.8" y1="326.4" x2="571.0" y2="326.4"/><line x1="456.2" y1="513.1" x2="580.3" y2="513.1"/><line x1="288.4" y1="587.8" x2="366.4" y2="587.8"/><line x1="432.4" y1="587.8" x2="516.2" y2="587.8"/><line x1="333.9" y1="590.1" x2="333.9" y2="665.8"/><line x1="396.9" y1="730.5" x2="396.9" y2="880.7"/><line x1="245.2" y1="762.7" x2="336.3" y2="763.0"/><line x1="14.6" y1="795.3" x2="396.9" y2="795.3"/><line x1="319.2" y1="347.1" x2="319.2" y2="406.5"/></g><g stroke="#000" stroke-width=".5" fill="none"><rect x="550.8" y="91.3" width="12.2" height="8.4"/><rect x="128.5" y="121.1" width="16.7" height="10.7"/><rect x="109.9" y="121.1" width="17.3" height="10.7"/><rect x="75.4" y="121.1" width="33.0" height="10.7"/><rect x="569.0" y="91.3" width="12.2" height="8.4"/><rect x="71.1" y="148.0" width="187.3" height="12.4"/><rect x="389.3" y="148.6" width="178.9" height="12.4"/><rect x="284.3" y="167.7" width="155.2" height="14.0"/><rect x="503.4" y="167.1" width="74.3" height="13.5"/><rect x="100.3" y="163.7" width="6.7" height="6.8"/><rect x="101.1" y="174.0" width="6.7" height="6.7"/><rect x="179.7" y="163.7" width="6.8" height="6.8"/><rect x="94.5" y="187.6" width="133.3" height="14.0"/><rect x="293.0" y="187.0" width="148.5" height="14.1"/><rect x="511.6" y="186.4" width="66.4" height="14.1"/><rect x="223.5" y="121.1" width="338.7" height="11.8"/><rect x="249.9" y="215.2" width="6.7" height="6.7"/><rect x="290.1" y="215.2" width="6.7" height="6.7"/><rect x="360.1" y="214.5" width="72.0" height="9.5"/><rect x="549.0" y="259.7" width="12.3" height="8.4"/><rect x="569.1" y="259.7" width="12.2" height="8.4"/><rect x="94.0" y="260.2" width="332.9" height="14.1"/><rect x="25.7" y="243.9" width="6.8" height="6.7"/><rect x="71.1" y="244.5" width="6.8" height="6.7"/><rect x="102.2" y="244.5" width="6.7" height="6.7"/><rect x="128.5" y="287.7" width="16.7" height="10.7"/><rect x="109.9" y="287.7" width="17.3" height="10.7"/><rect x="75.4" y="287.7" width="33.0" height="10.7"/><rect class="sa" x="311.6" y="287.7" width="254.3" height="11.8"/><rect x="71.1" y="316.2" width="187.3" height="12.4"/><rect x="377.0" y="317.4" width="6.8" height="6.7"/><rect x="457.9" y="316.8" width="6.7" height="6.8"/><rect x="414.4" y="316.8" width="6.7" height="6.8"/><rect x="220.0" y="288.8" width="338.6" height="11.8"/><rect x="456.8" y="434.8" width="6.7" height="6.8"/><rect x="457.3" y="445.6" width="6.8" height="6.8"/><rect x="457.3" y="455.9" width="6.8" height="6.7"/><rect x="456.8" y="467.8" width="6.7" height="6.7"/><rect x="457.3" y="478.6" width="6.8" height="6.7"/><rect x="457.3" y="488.8" width="6.8" height="6.8"/><rect x="19.2" y="581.6" width="6.8" height="6.8"/><rect x="73.5" y="581.6" width="6.8" height="6.8"/><rect x="227.1" y="581.6" width="6.7" height="6.8"/><rect x="372.9" y="581.1" width="6.8" height="6.7"/><rect x="18.1" y="593.0" width="6.8" height="6.8"/><rect x="28.0" y="603.8" width="6.7" height="6.8"/><rect x="28.0" y="614.6" width="6.7" height="6.8"/><rect x="28.0" y="625.4" width="6.7" height="6.8"/><rect x="27.4" y="636.2" width="6.8" height="6.8"/><rect x="27.4" y="647.6" width="6.8" height="6.7"/><rect x="27.4" y="658.4" width="6.8" height="6.7"/><rect x="457.9" y="625.4" width="6.7" height="6.8"/><rect x="457.3" y="636.2" width="6.8" height="6.8"/><rect x="457.3" y="647.0" width="6.8" height="6.8"/><rect x="457.9" y="657.8" width="6.7" height="6.8"/><rect x="332.6" y="666.9" width="110.8" height="10.7"/><rect x="474.2" y="668.6" width="6.8" height="6.8"/><rect x="457.3" y="689.6" width="6.8" height="6.8"/><rect x="457.3" y="701.0" width="6.8" height="6.8"/><rect x="457.9" y="711.8" width="6.7" height="6.8"/><rect x="514.4" y="668.0" width="6.7" height="6.8"/><rect x="457.9" y="722.6" width="6.7" height="6.8"/><rect x="16.3" y="743.1" width="6.7" height="6.7"/><rect x="25.2" y="755.0" width="6.7" height="6.8"/><rect x="25.2" y="765.2" width="6.7" height="6.8"/><rect x="25.2" y="775.5" width="6.7" height="6.7"/><rect x="25.7" y="786.3" width="6.8" height="6.7"/><rect x="334.4" y="732.3" width="59.6" height="32.1"/><rect x="23.9" y="819.2" width="6.7" height="6.8"/><rect x="23.9" y="830.6" width="6.7" height="6.8"/><rect x="24.5" y="841.4" width="6.7" height="6.8"/><rect x="287.1" y="795.4" width="104.0" height="9.6"/><rect x="85.1" y="93.3" width="338.7" height="11.9"/></g><g font-family="Calibri,Carlito,Arial,sans-serif" fill="#000"><text x="481.6" y="49.4" font-size="8.2" textLength="14.0" lengthAdjust="spacingAndGlyphs">MM</text><text x="527.8" y="49.4" font-size="8.2" textLength="10.0" lengthAdjust="spacingAndGlyphs">DD</text><text x="557.4" y="49.4" font-size="8.2" textLength="16.0" lengthAdjust="spacingAndGlyphs">YYYY</text><text x="16.6" y="131.6" font-size="7.6" font-weight="700" textLength="5.8" lengthAdjust="spacingAndGlyphs">3.</text><text x="24.2" y="131.6" font-size="7.6" font-weight="700" textLength="15.0" lengthAdjust="spacingAndGlyphs">Date</text><text x="41.0" y="131.6" font-size="7.6" font-weight="700" textLength="6.4" lengthAdjust="spacingAndGlyphs">of</text><text x="49.2" y="131.6" font-size="7.6" font-weight="700" textLength="19.2" lengthAdjust="spacingAndGlyphs">Birth*</text><text x="16.6" y="157.2" font-size="7.6" font-weight="700" textLength="5.8" lengthAdjust="spacingAndGlyphs">5.</text><text x="24.2" y="157.2" font-size="7.6" font-weight="700" textLength="16.6" lengthAdjust="spacingAndGlyphs">Place</text><text x="42.6" y="157.2" font-size="7.6" font-weight="700" textLength="6.4" lengthAdjust="spacingAndGlyphs">of</text><text x="50.8" y="157.2" font-size="7.6" font-weight="700" textLength="19.2" lengthAdjust="spacingAndGlyphs">Birth*</text><text x="288.7" y="157.4" font-size="7.6" font-weight="700" textLength="5.8" lengthAdjust="spacingAndGlyphs">6.</text><text x="296.3" y="157.4" font-size="7.6" font-weight="700" textLength="38.9" lengthAdjust="spacingAndGlyphs">Relationship</text><text x="336.9" y="157.4" font-size="7.6" font-weight="700" textLength="6.7" lengthAdjust="spacingAndGlyphs">to</text><text x="345.3" y="157.4" font-size="7.6" font-weight="700" textLength="39.0" lengthAdjust="spacingAndGlyphs">Beneficiary*</text><text x="250.3" y="192.5" font-size="6.8" font-weight="700" textLength="8.6" lengthAdjust="spacingAndGlyphs">11.</text><text x="260.5" y="192.5" font-size="6.8" font-weight="700" textLength="13.9" lengthAdjust="spacingAndGlyphs">Skills</text><text x="251.8" y="201.5" font-size="6.8" font-weight="700" textLength="35.4" lengthAdjust="spacingAndGlyphs">Occupation*</text><text x="16.6" y="303.9" font-size="7.6" font-weight="700" textLength="5.8" lengthAdjust="spacingAndGlyphs">3.</text><text x="24.2" y="303.9" font-size="7.6" font-weight="700" textLength="15.0" lengthAdjust="spacingAndGlyphs">Date</text><text x="41.0" y="303.9" font-size="7.6" font-weight="700" textLength="6.4" lengthAdjust="spacingAndGlyphs">of</text><text x="49.2" y="303.9" font-size="7.6" font-weight="700" textLength="19.2" lengthAdjust="spacingAndGlyphs">Birth*</text><text x="16.6" y="325.5" font-size="7.6" font-weight="700" textLength="5.8" lengthAdjust="spacingAndGlyphs">5.</text><text x="24.2" y="325.5" font-size="7.6" font-weight="700" textLength="16.6" lengthAdjust="spacingAndGlyphs">Place</text><text x="42.6" y="325.5" font-size="7.6" font-weight="700" textLength="6.4" lengthAdjust="spacingAndGlyphs">of</text><text x="50.8" y="325.5" font-size="7.6" font-weight="700" textLength="19.2" lengthAdjust="spacingAndGlyphs">Birth*</text><text x="322.9" y="325.5" font-size="7.6" textLength="5.7" lengthAdjust="spacingAndGlyphs">6.</text><text x="330.5" y="325.5" font-size="7.6" textLength="12.8" lengthAdjust="spacingAndGlyphs">Civil</text><text x="345.1" y="325.5" font-size="7.6" textLength="23.0" lengthAdjust="spacingAndGlyphs">Status*</text><text x="157.7" y="357.1" font-size="7.6" textLength="10.5" lengthAdjust="spacingAndGlyphs">Sex</text><text x="191.1" y="352.9" font-size="6.0" textLength="10.1" lengthAdjust="spacingAndGlyphs">AGE</text><text x="227.5" y="352.7" font-size="6.0" textLength="10.2" lengthAdjust="spacingAndGlyphs">Civil</text><text x="224.9" y="360.9" font-size="6.0" textLength="15.1" lengthAdjust="spacingAndGlyphs">Status</text><text x="459.9" y="357.1" font-size="7.6" textLength="15.1" lengthAdjust="spacingAndGlyphs">Skills</text><text x="476.9" y="357.1" font-size="7.6" textLength="2.9" lengthAdjust="spacingAndGlyphs">/</text><text x="481.7" y="357.1" font-size="7.6" textLength="35.4" lengthAdjust="spacingAndGlyphs">Occupation</text><text x="16.6" y="577.1" font-size="7.6" textLength="5.7" lengthAdjust="spacingAndGlyphs">1.</text><text x="24.2" y="577.1" font-size="7.6" textLength="21.6" lengthAdjust="spacingAndGlyphs">Nature</text><text x="47.6" y="577.1" font-size="7.6" textLength="6.3" lengthAdjust="spacingAndGlyphs">of</text><text x="55.7" y="577.1" font-size="7.6" textLength="25.0" lengthAdjust="spacingAndGlyphs">Services</text><text x="82.5" y="577.1" font-size="7.6" textLength="2.9" lengthAdjust="spacingAndGlyphs">/</text><text x="87.3" y="577.1" font-size="7.6" textLength="32.4" lengthAdjust="spacingAndGlyphs">Assistance</text><text x="32.8" y="598.7" font-size="7.6" textLength="27.1" lengthAdjust="spacingAndGlyphs">Financial</text><text x="61.8" y="598.7" font-size="7.6" textLength="32.4" lengthAdjust="spacingAndGlyphs">Assistance</text><text x="342.7" y="598.7" font-size="7.6" textLength="17.6" lengthAdjust="spacingAndGlyphs">Value</text><text x="362.1" y="598.7" font-size="7.6" textLength="22.5" lengthAdjust="spacingAndGlyphs">(Pesos)</text><text x="455.8" y="598.3" font-size="6.0" textLength="19.8" lengthAdjust="spacingAndGlyphs">Amount</text><text x="476.9" y="598.3" font-size="6.0" textLength="5.0" lengthAdjust="spacingAndGlyphs">of</text><text x="483.3" y="598.3" font-size="6.0" textLength="21.5" lengthAdjust="spacingAndGlyphs">Financial</text><text x="506.3" y="598.3" font-size="6.0" textLength="25.5" lengthAdjust="spacingAndGlyphs">Assistance</text><text x="533.2" y="598.3" font-size="6.0" textLength="5.2" lengthAdjust="spacingAndGlyphs">to</text><text x="539.8" y="598.3" font-size="6.0" textLength="6.2" lengthAdjust="spacingAndGlyphs">be</text><text x="547.4" y="598.3" font-size="6.0" textLength="23.1" lengthAdjust="spacingAndGlyphs">extended</text><text x="41.8" y="609.5" font-size="7.6" textLength="24.5" lengthAdjust="spacingAndGlyphs">Medical</text><text x="41.8" y="620.3" font-size="7.6" textLength="17.9" lengthAdjust="spacingAndGlyphs">Burial</text><text x="455.8" y="619.9" font-size="6.0" textLength="19.8" lengthAdjust="spacingAndGlyphs">Amount</text><text x="476.9" y="619.9" font-size="6.0" textLength="5.0" lengthAdjust="spacingAndGlyphs">of</text><text x="483.3" y="619.9" font-size="6.0" textLength="21.5" lengthAdjust="spacingAndGlyphs">Financial</text><text x="506.3" y="619.9" font-size="6.0" textLength="25.5" lengthAdjust="spacingAndGlyphs">Assistance</text><text x="533.2" y="619.9" font-size="6.0" textLength="5.2" lengthAdjust="spacingAndGlyphs">to</text><text x="539.8" y="619.9" font-size="6.0" textLength="6.2" lengthAdjust="spacingAndGlyphs">be</text><text x="547.4" y="619.9" font-size="6.0" textLength="23.1" lengthAdjust="spacingAndGlyphs">extended</text><text x="40.0" y="631.1" font-size="7.6" textLength="46.2" lengthAdjust="spacingAndGlyphs">Transportation</text><text x="472.3" y="631.1" font-size="8.2" textLength="15.9" lengthAdjust="spacingAndGlyphs">Cash</text><text x="40.0" y="642.0" font-size="7.6" textLength="36.3" lengthAdjust="spacingAndGlyphs">Educational</text><text x="470.5" y="642.0" font-size="8.2" textLength="19.9" lengthAdjust="spacingAndGlyphs">Check</text><text x="40.0" y="652.8" font-size="7.6" textLength="15.4" lengthAdjust="spacingAndGlyphs">Food</text><text x="57.2" y="652.8" font-size="7.6" textLength="23.6" lengthAdjust="spacingAndGlyphs">Subsidy</text><text x="470.5" y="652.8" font-size="8.2" textLength="35.6" lengthAdjust="spacingAndGlyphs">Guarantee</text><text x="507.9" y="652.8" font-size="8.2" textLength="19.8" lengthAdjust="spacingAndGlyphs">Letter</text><text x="40.0" y="663.5" font-size="7.6" textLength="21.0" lengthAdjust="spacingAndGlyphs">Others</text><text x="173.1" y="663.5" font-size="7.6" textLength="22.0" lengthAdjust="spacingAndGlyphs">Specify</text><text x="196.8" y="663.5" font-size="7.6" textLength="119.7" lengthAdjust="spacingAndGlyphs">:_______________________________</text><text x="472.3" y="663.5" font-size="8.2" textLength="23.0" lengthAdjust="spacingAndGlyphs">Tickets</text><text x="281.5" y="674.4" font-size="7.6" textLength="8.3" lengthAdjust="spacingAndGlyphs">(a)</text><text x="291.7" y="674.4" font-size="7.6" textLength="11.4" lengthAdjust="spacingAndGlyphs">Sub</text><text x="304.9" y="674.4" font-size="7.6" textLength="2.3" lengthAdjust="spacingAndGlyphs">-</text><text x="309.1" y="674.4" font-size="7.6" textLength="15.7" lengthAdjust="spacingAndGlyphs">Total</text><text x="455.9" y="685.1" font-size="6.8" textLength="19.0" lengthAdjust="spacingAndGlyphs">Source</text><text x="476.5" y="685.1" font-size="6.8" textLength="5.7" lengthAdjust="spacingAndGlyphs">of</text><text x="483.7" y="685.1" font-size="6.8" textLength="28.6" lengthAdjust="spacingAndGlyphs">Assistance</text><text x="470.5" y="696.0" font-size="8.2" textLength="25.2" lengthAdjust="spacingAndGlyphs">Regular</text><text x="497.5" y="696.0" font-size="8.2" textLength="20.2" lengthAdjust="spacingAndGlyphs">Funds</text><text x="470.5" y="706.8" font-size="8.2" textLength="31.1" lengthAdjust="spacingAndGlyphs">Donation</text><text x="470.5" y="717.5" font-size="8.2" textLength="33.1" lengthAdjust="spacingAndGlyphs">Expanded</text><text x="505.5" y="717.5" font-size="8.2" textLength="14.9" lengthAdjust="spacingAndGlyphs">AICS</text><text x="470.5" y="728.4" font-size="8.2" textLength="70.6" lengthAdjust="spacingAndGlyphs">Others____________</text><text x="29.4" y="750.0" font-size="8.2" textLength="28.2" lengthAdjust="spacingAndGlyphs">Material</text><text x="59.4" y="750.0" font-size="8.2" textLength="34.8" lengthAdjust="spacingAndGlyphs">Assistance</text><text x="40.2" y="760.8" font-size="8.2" textLength="16.9" lengthAdjust="spacingAndGlyphs">Food</text><text x="59.0" y="760.8" font-size="8.2" textLength="15.3" lengthAdjust="spacingAndGlyphs">Pack</text><text x="40.2" y="771.6" font-size="8.2" textLength="16.7" lengthAdjust="spacingAndGlyphs">Used</text><text x="58.8" y="771.6" font-size="8.2" textLength="27.8" lengthAdjust="spacingAndGlyphs">Clothing</text><text x="245.5" y="771.4" font-size="6.8" textLength="20.2" lengthAdjust="spacingAndGlyphs">Client's</text><text x="267.2" y="771.4" font-size="6.8" textLength="26.4" lengthAdjust="spacingAndGlyphs">Signature</text><text x="339.7" y="771.4" font-size="6.8" textLength="33.7" lengthAdjust="spacingAndGlyphs">Thumbmark</text><text x="40.2" y="782.4" font-size="8.2" textLength="12.3" lengthAdjust="spacingAndGlyphs">Hot</text><text x="54.4" y="782.4" font-size="8.2" textLength="16.9" lengthAdjust="spacingAndGlyphs">Meal</text><text x="38.4" y="793.2" font-size="8.2" textLength="28.6" lengthAdjust="spacingAndGlyphs">Assistive</text><text x="68.8" y="793.2" font-size="8.2" textLength="22.1" lengthAdjust="spacingAndGlyphs">Device</text><text x="16.8" y="814.8" font-size="8.2" textLength="22.9" lengthAdjust="spacingAndGlyphs">Source</text><text x="41.4" y="814.8" font-size="8.2" textLength="6.9" lengthAdjust="spacingAndGlyphs">of</text><text x="50.2" y="814.8" font-size="8.2" textLength="34.9" lengthAdjust="spacingAndGlyphs">Assistance</text><text x="36.6" y="825.6" font-size="8.2" textLength="25.2" lengthAdjust="spacingAndGlyphs">Regular</text><text x="63.6" y="825.6" font-size="8.2" textLength="20.2" lengthAdjust="spacingAndGlyphs">Funds</text><text x="36.6" y="836.4" font-size="8.2" textLength="31.1" lengthAdjust="spacingAndGlyphs">Donation</text><text x="36.6" y="847.2" font-size="8.2" textLength="33.1" lengthAdjust="spacingAndGlyphs">Expanded</text><text x="71.5" y="847.2" font-size="8.2" textLength="14.9" lengthAdjust="spacingAndGlyphs">AICS</text><text x="477.8" y="739.1" font-size="8.2" textLength="29.9" lengthAdjust="spacingAndGlyphs">Assessed</text><text x="509.5" y="739.1" font-size="8.2" textLength="10.4" lengthAdjust="spacingAndGlyphs">By:</text><text x="16.8" y="237.0" font-size="8.2" font-weight="700" fill="#fff" textLength="6.6" lengthAdjust="spacingAndGlyphs">II.</text><text x="25.2" y="237.0" font-size="8.2" font-weight="700" fill="#fff" textLength="43.4" lengthAdjust="spacingAndGlyphs">Beneficiary's</text><text x="70.4" y="237.0" font-size="8.2" font-weight="700" fill="#fff" textLength="36.7" lengthAdjust="spacingAndGlyphs">Identifying</text><text x="108.8" y="237.0" font-size="8.2" font-weight="700" fill="#fff" textLength="40.8" lengthAdjust="spacingAndGlyphs">Information</text><text x="455.9" y="191.6" font-size="6.8" font-weight="700" textLength="8.6" lengthAdjust="spacingAndGlyphs">12.</text><text x="466.1" y="191.6" font-size="6.8" font-weight="700" textLength="28.6" lengthAdjust="spacingAndGlyphs">Estimated</text><text x="455.9" y="200.6" font-size="6.8" font-weight="700" textLength="24.0" lengthAdjust="spacingAndGlyphs">Monthly</text><text x="481.5" y="200.6" font-size="6.8" font-weight="700" textLength="24.2" lengthAdjust="spacingAndGlyphs">Income*</text><text x="16.8" y="83.6" font-size="8.2" font-weight="700" fill="#fff" textLength="4.4" lengthAdjust="spacingAndGlyphs">I.</text><text x="23.0" y="83.6" font-size="8.2" font-weight="700" fill="#fff" textLength="25.1" lengthAdjust="spacingAndGlyphs">Client's</text><text x="49.8" y="83.6" font-size="8.2" font-weight="700" fill="#fff" textLength="36.7" lengthAdjust="spacingAndGlyphs">Identifying</text><text x="88.2" y="83.6" font-size="8.2" font-weight="700" fill="#fff" textLength="40.8" lengthAdjust="spacingAndGlyphs">Information</text><text x="16.6" y="102.0" font-size="7.6" textLength="5.7" lengthAdjust="spacingAndGlyphs">1.</text><text x="22.4" y="102.0" font-size="7.6" font-weight="700" textLength="22.8" lengthAdjust="spacingAndGlyphs">Client's</text><text x="47.0" y="102.0" font-size="7.6" font-weight="700" textLength="18.8" lengthAdjust="spacingAndGlyphs">Name</text><text x="65.8" y="102.0" font-size="7.6" textLength="3.8" lengthAdjust="spacingAndGlyphs">*</text><text x="154.8" y="129.2" font-size="7.6" font-weight="700" textLength="5.8" lengthAdjust="spacingAndGlyphs">4.</text><text x="162.4" y="129.2" font-size="7.6" font-weight="700" textLength="24.0" lengthAdjust="spacingAndGlyphs">Present</text><text x="188.2" y="129.2" font-size="7.6" font-weight="700" textLength="29.0" lengthAdjust="spacingAndGlyphs">Address*</text><text x="16.6" y="170.8" font-size="7.6" font-weight="700" textLength="5.8" lengthAdjust="spacingAndGlyphs">7.</text><text x="24.2" y="170.8" font-size="7.6" font-weight="700" textLength="13.1" lengthAdjust="spacingAndGlyphs">Civil</text><text x="39.0" y="170.8" font-size="7.6" font-weight="700" textLength="23.4" lengthAdjust="spacingAndGlyphs">Status*</text><text x="245.5" y="176.0" font-size="7.6" font-weight="700" textLength="5.8" lengthAdjust="spacingAndGlyphs">8.</text><text x="253.1" y="176.0" font-size="7.6" font-weight="700" textLength="28.8" lengthAdjust="spacingAndGlyphs">Religion*</text><text x="455.9" y="176.0" font-size="7.6" font-weight="700" textLength="5.8" lengthAdjust="spacingAndGlyphs">9.</text><text x="463.5" y="176.0" font-size="7.6" font-weight="700" textLength="38.6" lengthAdjust="spacingAndGlyphs">Nationality*</text><text x="16.6" y="191.9" font-size="6.8" font-weight="700" textLength="8.6" lengthAdjust="spacingAndGlyphs">10.</text><text x="26.8" y="191.9" font-size="6.8" font-weight="700" textLength="21.2" lengthAdjust="spacingAndGlyphs">Highest</text><text x="49.6" y="191.9" font-size="6.8" font-weight="700" textLength="33.0" lengthAdjust="spacingAndGlyphs">Educational</text><text x="53.4" y="200.9" font-size="6.8" font-weight="700" textLength="32.6" lengthAdjust="spacingAndGlyphs">Attainment</text><text x="245.5" y="212.0" font-size="7.6" font-weight="700" textLength="9.6" lengthAdjust="spacingAndGlyphs">14.</text><text x="256.9" y="212.0" font-size="7.6" font-weight="700" textLength="18.4" lengthAdjust="spacingAndGlyphs">Mode</text><text x="277.0" y="212.0" font-size="7.6" font-weight="700" textLength="6.4" lengthAdjust="spacingAndGlyphs">of</text><text x="285.2" y="212.0" font-size="7.6" font-weight="700" textLength="32.5" lengthAdjust="spacingAndGlyphs">Admission</text><text x="319.4" y="212.0" font-size="7.6" font-weight="700" textLength="3.8" lengthAdjust="spacingAndGlyphs">*</text><text x="344.8" y="212.0" font-size="7.6" font-weight="700" textLength="9.6" lengthAdjust="spacingAndGlyphs">15.</text><text x="356.2" y="212.0" font-size="7.6" font-weight="700" textLength="29.2" lengthAdjust="spacingAndGlyphs">Referring</text><text x="387.1" y="212.0" font-size="7.6" font-weight="700" textLength="16.8" lengthAdjust="spacingAndGlyphs">party</text><text x="16.6" y="211.5" font-size="6.8" textLength="8.5" lengthAdjust="spacingAndGlyphs">13.</text><text x="26.8" y="211.5" font-size="6.8" textLength="27.9" lengthAdjust="spacingAndGlyphs">Philhealth</text><text x="56.3" y="211.5" font-size="6.8" textLength="13.2" lengthAdjust="spacingAndGlyphs">No.*</text><text x="455.9" y="211.2" font-size="6.8" textLength="8.5" lengthAdjust="spacingAndGlyphs">16.</text><text x="466.1" y="211.2" font-size="6.8" textLength="21.3" lengthAdjust="spacingAndGlyphs">Contact</text><text x="488.9" y="211.2" font-size="6.8" textLength="3.4" lengthAdjust="spacingAndGlyphs">#</text><text x="16.6" y="269.9" font-size="7.6" textLength="40.4" lengthAdjust="spacingAndGlyphs">1.Beneficiary</text><text x="57.0" y="269.9" font-size="7.6" font-weight="700" textLength="4.8" lengthAdjust="spacingAndGlyphs">'s</text><text x="63.6" y="269.9" font-size="7.6" font-weight="700" textLength="18.8" lengthAdjust="spacingAndGlyphs">Name</text><text x="82.4" y="269.9" font-size="7.6" textLength="3.8" lengthAdjust="spacingAndGlyphs">*</text><text x="16.8" y="341.3" font-size="8.2" font-weight="700" fill="#fff" textLength="8.8" lengthAdjust="spacingAndGlyphs">III.</text><text x="27.4" y="341.3" font-size="8.2" font-weight="700" fill="#fff" textLength="43.4" lengthAdjust="spacingAndGlyphs">Beneficiary's</text><text x="72.6" y="341.3" font-size="8.2" font-weight="700" fill="#fff" textLength="22.3" lengthAdjust="spacingAndGlyphs">Family</text><text x="96.6" y="341.3" font-size="8.2" font-weight="700" fill="#fff" textLength="43.0" lengthAdjust="spacingAndGlyphs">Composition</text><text x="141.3" y="341.3" font-size="8.2" font-weight="700" fill="#fff" textLength="14.3" lengthAdjust="spacingAndGlyphs">(use</text><text x="157.5" y="341.3" font-size="8.2" font-weight="700" fill="#fff" textLength="34.4" lengthAdjust="spacingAndGlyphs">additional</text><text x="193.7" y="341.3" font-size="8.2" font-weight="700" fill="#fff" textLength="22.0" lengthAdjust="spacingAndGlyphs">sheets</text><text x="217.5" y="341.3" font-size="8.2" font-weight="700" fill="#fff" textLength="7.3" lengthAdjust="spacingAndGlyphs">as</text><text x="226.5" y="341.3" font-size="8.2" font-weight="700" fill="#fff" textLength="35.9" lengthAdjust="spacingAndGlyphs">necessary)</text><text x="154.8" y="298.7" font-size="7.6" font-weight="700" textLength="5.8" lengthAdjust="spacingAndGlyphs">4.</text><text x="162.4" y="298.7" font-size="7.6" font-weight="700" textLength="24.0" lengthAdjust="spacingAndGlyphs">Present</text><text x="188.2" y="298.7" font-size="7.6" font-weight="700" textLength="29.0" lengthAdjust="spacingAndGlyphs">Address*</text><text x="455.9" y="503.7" font-size="7.6" textLength="5.7" lengthAdjust="spacingAndGlyphs">4.</text><text x="463.5" y="503.7" font-size="7.6" textLength="17.9" lengthAdjust="spacingAndGlyphs">Client</text><text x="483.3" y="503.7" font-size="7.6" textLength="13.7" lengthAdjust="spacingAndGlyphs">Sub-</text><text x="498.9" y="503.7" font-size="7.6" textLength="27.6" lengthAdjust="spacingAndGlyphs">Category</text><text x="16.6" y="428.9" font-size="6.8" textLength="5.1" lengthAdjust="spacingAndGlyphs">1.</text><text x="23.4" y="428.9" font-size="6.8" textLength="23.6" lengthAdjust="spacingAndGlyphs">Problem</text><text x="48.5" y="428.9" font-size="6.8" textLength="28.1" lengthAdjust="spacingAndGlyphs">Presented</text><text x="173.1" y="428.9" font-size="6.8" textLength="5.1" lengthAdjust="spacingAndGlyphs">2.</text><text x="179.8" y="428.9" font-size="6.8" textLength="16.0" lengthAdjust="spacingAndGlyphs">Social</text><text x="197.4" y="428.9" font-size="6.8" textLength="25.0" lengthAdjust="spacingAndGlyphs">Worker's</text><text x="224.0" y="428.9" font-size="6.8" textLength="32.4" lengthAdjust="spacingAndGlyphs">Assessment</text><text x="455.9" y="428.9" font-size="6.8" textLength="5.1" lengthAdjust="spacingAndGlyphs">3.</text><text x="462.7" y="428.9" font-size="6.8" textLength="16.0" lengthAdjust="spacingAndGlyphs">Client</text><text x="480.3" y="428.9" font-size="6.8" textLength="24.7" lengthAdjust="spacingAndGlyphs">Category</text><text x="506.5" y="428.9" font-size="6.8" textLength="17.7" lengthAdjust="spacingAndGlyphs">(check</text><text x="525.7" y="428.9" font-size="6.8" textLength="11.9" lengthAdjust="spacingAndGlyphs">only</text><text x="539.0" y="428.9" font-size="6.8" textLength="12.6" lengthAdjust="spacingAndGlyphs">one)</text><text x="525.8" y="356.3" font-size="6.8" textLength="9.9" lengthAdjust="spacingAndGlyphs">Est.</text><text x="537.4" y="356.3" font-size="6.8" textLength="23.5" lengthAdjust="spacingAndGlyphs">Monthly</text><text x="562.3" y="356.3" font-size="6.8" textLength="20.6" lengthAdjust="spacingAndGlyphs">Income</text><text x="16.8" y="563.1" font-size="8.2" font-weight="700" fill="#fff" textLength="7.0" lengthAdjust="spacingAndGlyphs">V.</text><text x="25.6" y="563.1" font-size="8.2" font-weight="700" fill="#fff" textLength="51.4" lengthAdjust="spacingAndGlyphs">Recommended</text><text x="78.8" y="563.1" font-size="8.2" font-weight="700" fill="#fff" textLength="27.6" lengthAdjust="spacingAndGlyphs">Services</text><text x="108.1" y="563.1" font-size="8.2" font-weight="700" fill="#fff" textLength="12.8" lengthAdjust="spacingAndGlyphs">and</text><text x="122.7" y="563.1" font-size="8.2" font-weight="700" fill="#fff" textLength="35.3" lengthAdjust="spacingAndGlyphs">Assistance</text><text x="158.1" y="793.2" font-size="8.2" textLength="82.1" lengthAdjust="spacingAndGlyphs">Specify:______________</text><text x="16.8" y="416.1" font-size="8.2" font-weight="700" fill="#fff" textLength="9.2" lengthAdjust="spacingAndGlyphs">IV.</text><text x="27.8" y="416.1" font-size="8.2" font-weight="700" fill="#fff" textLength="40.0" lengthAdjust="spacingAndGlyphs">Assessment</text><text x="69.6" y="416.1" font-size="8.2" font-weight="700" fill="#fff" textLength="14.3" lengthAdjust="spacingAndGlyphs">(use</text><text x="85.8" y="416.1" font-size="8.2" font-weight="700" fill="#fff" textLength="34.4" lengthAdjust="spacingAndGlyphs">additional</text><text x="122.0" y="416.1" font-size="8.2" font-weight="700" fill="#fff" textLength="22.0" lengthAdjust="spacingAndGlyphs">sheets</text><text x="145.7" y="416.1" font-size="8.2" font-weight="700" fill="#fff" textLength="7.3" lengthAdjust="spacingAndGlyphs">as</text><text x="154.7" y="416.1" font-size="8.2" font-weight="700" fill="#fff" textLength="35.9" lengthAdjust="spacingAndGlyphs">necessary)</text><text x="475.9" y="439.5" font-size="6.0" textLength="20.5" lengthAdjust="spacingAndGlyphs">Children</text><text x="497.9" y="439.5" font-size="6.0" textLength="4.5" lengthAdjust="spacingAndGlyphs">in</text><text x="503.9" y="439.5" font-size="6.0" textLength="12.9" lengthAdjust="spacingAndGlyphs">Need</text><text x="518.2" y="439.5" font-size="6.0" textLength="5.0" lengthAdjust="spacingAndGlyphs">of</text><text x="524.6" y="439.5" font-size="6.0" textLength="17.2" lengthAdjust="spacingAndGlyphs">Special</text><text x="543.2" y="439.5" font-size="6.0" textLength="25.7" lengthAdjust="spacingAndGlyphs">Protection</text><text x="477.6" y="450.3" font-size="6.0" textLength="14.5" lengthAdjust="spacingAndGlyphs">Youth</text><text x="493.5" y="450.3" font-size="6.0" textLength="4.5" lengthAdjust="spacingAndGlyphs">in</text><text x="499.5" y="450.3" font-size="6.0" textLength="12.9" lengthAdjust="spacingAndGlyphs">Need</text><text x="513.9" y="450.3" font-size="6.0" textLength="5.0" lengthAdjust="spacingAndGlyphs">of</text><text x="520.3" y="450.3" font-size="6.0" textLength="17.2" lengthAdjust="spacingAndGlyphs">Special</text><text x="538.8" y="450.3" font-size="6.0" textLength="25.7" lengthAdjust="spacingAndGlyphs">Protection</text><text x="475.9" y="460.9" font-size="5.2" textLength="16.9" lengthAdjust="spacingAndGlyphs">Women</text><text x="494.1" y="460.9" font-size="5.2" textLength="3.9" lengthAdjust="spacingAndGlyphs">in</text><text x="499.3" y="460.9" font-size="5.2" textLength="20.5" lengthAdjust="spacingAndGlyphs">Especially</text><text x="521.1" y="460.9" font-size="5.2" textLength="19.1" lengthAdjust="spacingAndGlyphs">Difficulty</text><text x="541.4" y="460.9" font-size="5.2" textLength="30.8" lengthAdjust="spacingAndGlyphs">Circumstances</text><text x="469.8" y="471.9" font-size="6.0" textLength="16.9" lengthAdjust="spacingAndGlyphs">Person</text><text x="488.1" y="471.9" font-size="6.0" textLength="10.8" lengthAdjust="spacingAndGlyphs">with</text><text x="500.3" y="471.9" font-size="6.0" textLength="22.3" lengthAdjust="spacingAndGlyphs">Disability</text><text x="467.1" y="482.9" font-size="6.8" textLength="17.8" lengthAdjust="spacingAndGlyphs">Senior</text><text x="486.6" y="482.9" font-size="6.8" textLength="18.6" lengthAdjust="spacingAndGlyphs">Citizen</text><text x="477.4" y="493.5" font-size="6.0" textLength="15.9" lengthAdjust="spacingAndGlyphs">Family</text><text x="494.7" y="493.5" font-size="6.0" textLength="12.7" lengthAdjust="spacingAndGlyphs">Head</text><text x="508.9" y="493.5" font-size="6.0" textLength="9.1" lengthAdjust="spacingAndGlyphs">and</text><text x="519.5" y="493.5" font-size="6.0" textLength="13.5" lengthAdjust="spacingAndGlyphs">other</text><text x="534.3" y="493.5" font-size="6.0" textLength="15.7" lengthAdjust="spacingAndGlyphs">Needy</text><text x="551.4" y="493.5" font-size="6.0" textLength="13.2" lengthAdjust="spacingAndGlyphs">Adult</text><text x="83.4" y="31.2" font-size="7.5" textLength="26.0" lengthAdjust="spacingAndGlyphs">Republic</text><text x="111.3" y="31.2" font-size="7.5" textLength="6.2" lengthAdjust="spacingAndGlyphs">of</text><text x="119.2" y="31.2" font-size="7.5" textLength="10.2" lengthAdjust="spacingAndGlyphs">the</text><text x="131.1" y="31.2" font-size="7.5" textLength="32.8" lengthAdjust="spacingAndGlyphs">Philippines</text><text x="83.4" y="40.4" font-size="7.5" textLength="26.2" lengthAdjust="spacingAndGlyphs">Province</text><text x="111.4" y="40.4" font-size="7.5" textLength="6.2" lengthAdjust="spacingAndGlyphs">of</text><text x="119.4" y="40.4" font-size="7.5" textLength="32.1" lengthAdjust="spacingAndGlyphs">Pampanga</text><text x="83.4" y="49.5" font-size="7.5" textLength="32.1" lengthAdjust="spacingAndGlyphs">Mabalacat</text><text x="117.3" y="49.5" font-size="7.5" textLength="11.6" lengthAdjust="spacingAndGlyphs">City</text><text x="83.4" y="58.7" font-size="7.5" textLength="13.2" lengthAdjust="spacingAndGlyphs">CITY</text><text x="98.2" y="58.7" font-size="7.5" textLength="21.9" lengthAdjust="spacingAndGlyphs">SOCIAL</text><text x="121.8" y="58.7" font-size="7.5" textLength="28.9" lengthAdjust="spacingAndGlyphs">WELFARE</text><text x="152.5" y="58.7" font-size="7.5" textLength="13.8" lengthAdjust="spacingAndGlyphs">AND</text><text x="168.0" y="58.7" font-size="7.5" textLength="46.5" lengthAdjust="spacingAndGlyphs">DEVELOPMENT</text><text x="216.4" y="58.7" font-size="7.5" textLength="21.5" lengthAdjust="spacingAndGlyphs">OFFICE</text><text x="240.2" y="37.8" font-size="18.0" font-weight="700" textLength="58.7" lengthAdjust="spacingAndGlyphs">General</text><text x="303.1" y="37.8" font-size="18.0" font-weight="700" textLength="47.3" lengthAdjust="spacingAndGlyphs">Intake</text><text x="354.6" y="37.8" font-size="18.0" font-weight="700" textLength="42.4" lengthAdjust="spacingAndGlyphs">Sheet</text><text x="547.2" y="106.2" font-size="6.0" textLength="12.3" lengthAdjust="spacingAndGlyphs">Male</text><text x="566.5" y="107.0" font-size="6.0" textLength="17.7" lengthAdjust="spacingAndGlyphs">Female</text><text x="96.2" y="113.5" font-size="6.0" textLength="9.8" lengthAdjust="spacingAndGlyphs">Last</text><text x="107.3" y="113.5" font-size="6.0" textLength="14.5" lengthAdjust="spacingAndGlyphs">Name</text><text x="210.2" y="113.7" font-size="6.0" textLength="10.6" lengthAdjust="spacingAndGlyphs">First</text><text x="222.1" y="113.7" font-size="6.0" textLength="14.5" lengthAdjust="spacingAndGlyphs">Name</text><text x="299.7" y="113.1" font-size="6.0" textLength="17.1" lengthAdjust="spacingAndGlyphs">Middle</text><text x="318.3" y="113.1" font-size="6.0" textLength="14.5" lengthAdjust="spacingAndGlyphs">Name</text><text x="395.9" y="113.1" font-size="6.0" textLength="7.6" lengthAdjust="spacingAndGlyphs">Ext</text><text x="404.8" y="113.1" font-size="6.0" textLength="13.9" lengthAdjust="spacingAndGlyphs">(Jr,Sr)</text><text x="81.6" y="139.5" font-size="6.0" textLength="11.9" lengthAdjust="spacingAndGlyphs">YYYY</text><text x="112.7" y="139.8" font-size="6.0" textLength="10.2" lengthAdjust="spacingAndGlyphs">MM</text><text x="132.2" y="140.0" font-size="6.0" textLength="7.4" lengthAdjust="spacingAndGlyphs">DD</text><text x="226.8" y="139.5" font-size="6.0" textLength="16.8" lengthAdjust="spacingAndGlyphs">Region</text><text x="281.9" y="140.0" font-size="6.0" textLength="21.1" lengthAdjust="spacingAndGlyphs">Province</text><text x="349.8" y="140.0" font-size="6.0" textLength="17.4" lengthAdjust="spacingAndGlyphs">District</text><text x="379.7" y="140.0" font-size="6.0" textLength="41.4" lengthAdjust="spacingAndGlyphs">City/Municipality</text><text x="485.2" y="140.0" font-size="6.0" textLength="22.7" lengthAdjust="spacingAndGlyphs">Barangay</text><text x="530.6" y="139.5" font-size="6.0" textLength="42.0" lengthAdjust="spacingAndGlyphs">No./Street/Purok</text><text x="115.5" y="169.5" font-size="6.8" textLength="16.2" lengthAdjust="spacingAndGlyphs">Single</text><text x="191.1" y="169.5" font-size="6.0" textLength="15.6" lengthAdjust="spacingAndGlyphs">Other,</text><text x="208.2" y="169.5" font-size="6.0" textLength="17.3" lengthAdjust="spacingAndGlyphs">Specify</text><text x="112.9" y="179.4" font-size="6.0" textLength="19.6" lengthAdjust="spacingAndGlyphs">Married</text><text x="526.9" y="99.1" font-size="7.5" font-weight="700" textLength="5.8" lengthAdjust="spacingAndGlyphs">2.</text><text x="534.4" y="99.1" font-size="7.5" font-weight="700" textLength="14.6" lengthAdjust="spacingAndGlyphs">Sex*</text><text x="259.4" y="220.9" font-size="6.8" textLength="13.9" lengthAdjust="spacingAndGlyphs">Walk</text><text x="274.9" y="220.9" font-size="6.8" textLength="5.0" lengthAdjust="spacingAndGlyphs">in</text><text x="300.1" y="221.8" font-size="7.5" textLength="24.2" lengthAdjust="spacingAndGlyphs">Referral</text><text x="547.2" y="275.2" font-size="6.0" textLength="12.3" lengthAdjust="spacingAndGlyphs">Male</text><text x="566.5" y="276.1" font-size="6.0" textLength="17.7" lengthAdjust="spacingAndGlyphs">Female</text><text x="96.2" y="282.5" font-size="6.0" textLength="9.8" lengthAdjust="spacingAndGlyphs">Last</text><text x="107.3" y="282.5" font-size="6.0" textLength="14.5" lengthAdjust="spacingAndGlyphs">Name</text><text x="215.9" y="282.7" font-size="6.0" textLength="10.6" lengthAdjust="spacingAndGlyphs">First</text><text x="227.9" y="282.7" font-size="6.0" textLength="14.5" lengthAdjust="spacingAndGlyphs">Name</text><text x="299.7" y="282.2" font-size="6.0" textLength="17.1" lengthAdjust="spacingAndGlyphs">Middle</text><text x="318.3" y="282.2" font-size="6.0" textLength="14.5" lengthAdjust="spacingAndGlyphs">Name</text><text x="417.5" y="283.3" font-size="6.0" textLength="7.6" lengthAdjust="spacingAndGlyphs">Ext</text><text x="426.3" y="283.3" font-size="6.0" textLength="13.9" lengthAdjust="spacingAndGlyphs">(Jr,Sr)</text><text x="521.2" y="267.6" font-size="7.5" font-weight="700" textLength="5.8" lengthAdjust="spacingAndGlyphs">2.</text><text x="528.7" y="267.6" font-size="7.5" font-weight="700" textLength="14.5" lengthAdjust="spacingAndGlyphs">Sex*</text><text x="39.9" y="250.5" font-size="7.5" textLength="16.5" lengthAdjust="spacingAndGlyphs">NHTS</text><text x="82.3" y="251.4" font-size="7.5" textLength="8.8" lengthAdjust="spacingAndGlyphs">ISF</text><text x="112.8" y="251.6" font-size="7.5" textLength="45.1" lengthAdjust="spacingAndGlyphs">Disadvantaged</text><text x="159.4" y="251.6" font-size="7.5" textLength="29.6" lengthAdjust="spacingAndGlyphs">Individual</text><text x="81.6" y="306.1" font-size="6.0" textLength="11.9" lengthAdjust="spacingAndGlyphs">YYYY</text><text x="112.7" y="306.4" font-size="6.0" textLength="10.2" lengthAdjust="spacingAndGlyphs">MM</text><text x="132.2" y="306.7" font-size="6.0" textLength="7.4" lengthAdjust="spacingAndGlyphs">DD</text><text x="380.2" y="308.4" font-size="6.0" textLength="41.4" lengthAdjust="spacingAndGlyphs">City/Municipality</text><text x="435.6" y="308.4" font-size="6.0" textLength="17.4" lengthAdjust="spacingAndGlyphs">District</text><text x="481.1" y="308.4" font-size="6.0" textLength="22.7" lengthAdjust="spacingAndGlyphs">Barangay</text><text x="531.7" y="307.8" font-size="6.0" textLength="42.0" lengthAdjust="spacingAndGlyphs">No./Street/Purok</text><text x="391.8" y="323.1" font-size="6.8" textLength="16.2" lengthAdjust="spacingAndGlyphs">Single</text><text x="226.8" y="306.1" font-size="6.0" textLength="16.8" lengthAdjust="spacingAndGlyphs">Region</text><text x="284.8" y="307.2" font-size="6.0" textLength="21.1" lengthAdjust="spacingAndGlyphs">Province</text><text x="346.8" y="307.8" font-size="6.0" textLength="17.4" lengthAdjust="spacingAndGlyphs">District</text><text x="426.9" y="323.4" font-size="6.0" textLength="19.6" lengthAdjust="spacingAndGlyphs">Married</text><text x="469.9" y="322.6" font-size="6.0" textLength="15.6" lengthAdjust="spacingAndGlyphs">Other,</text><text x="487.0" y="322.6" font-size="6.0" textLength="17.3" lengthAdjust="spacingAndGlyphs">Specify</text><text x="19.8" y="356.9" font-size="6.8" textLength="11.1" lengthAdjust="spacingAndGlyphs">Last</text><text x="32.2" y="356.9" font-size="6.8" textLength="16.4" lengthAdjust="spacingAndGlyphs">Name</text><text x="60.2" y="356.9" font-size="6.8" textLength="12.1" lengthAdjust="spacingAndGlyphs">First</text><text x="73.8" y="356.9" font-size="6.8" textLength="16.5" lengthAdjust="spacingAndGlyphs">Name</text><text x="105.0" y="356.9" font-size="6.8" textLength="19.2" lengthAdjust="spacingAndGlyphs">Middle</text><text x="125.8" y="356.9" font-size="6.8" textLength="16.4" lengthAdjust="spacingAndGlyphs">Name</text><text x="260.3" y="357.1" font-size="6.8" textLength="34.0" lengthAdjust="spacingAndGlyphs">Relationship</text><text x="339.6" y="357.7" font-size="7.5" textLength="23.0" lengthAdjust="spacingAndGlyphs">Highest</text><text x="364.3" y="357.7" font-size="7.5" textLength="35.5" lengthAdjust="spacingAndGlyphs">Educational</text><text x="401.8" y="357.7" font-size="7.5" textLength="34.8" lengthAdjust="spacingAndGlyphs">Attainment</text><text x="31.4" y="588.3" font-size="6.8" textLength="31.8" lengthAdjust="spacingAndGlyphs">Counselling</text><text x="87.0" y="587.8" font-size="6.8" textLength="14.1" lengthAdjust="spacingAndGlyphs">Legal</text><text x="102.7" y="587.8" font-size="6.8" textLength="28.8" lengthAdjust="spacingAndGlyphs">Assistance</text><text x="132.8" y="587.8" font-size="6.8" textLength="25.3" lengthAdjust="spacingAndGlyphs">(Retainer</text><text x="159.6" y="587.8" font-size="6.8" textLength="43.0" lengthAdjust="spacingAndGlyphs">Lawyer/Others)</text><text x="238.0" y="588.3" font-size="6.8" textLength="21.9" lengthAdjust="spacingAndGlyphs">Referral</text><text x="261.4" y="588.3" font-size="6.8" textLength="23.6" lengthAdjust="spacingAndGlyphs">(Specify)</text><text x="385.1" y="587.8" font-size="6.8" textLength="18.7" lengthAdjust="spacingAndGlyphs">Others</text><text x="405.2" y="587.8" font-size="6.8" textLength="21.3" lengthAdjust="spacingAndGlyphs">Specify:</text><text x="492.2" y="675.3" font-size="6.8" textLength="9.8" lengthAdjust="spacingAndGlyphs">Bus</text><text x="530.5" y="675.3" font-size="6.8" textLength="12.7" lengthAdjust="spacingAndGlyphs">Boat</text><text x="246.8" y="803.2" font-size="6.8" textLength="7.4" lengthAdjust="spacingAndGlyphs">(a)</text><text x="255.6" y="803.2" font-size="6.8" textLength="26.5" lengthAdjust="spacingAndGlyphs">Sub-Total</text><text x="262.0" y="868.2" font-size="7.5" textLength="15.4" lengthAdjust="spacingAndGlyphs">Total</text></g></svg>`;
+const IX_BG=`<i style="left:15pt;top:73.6pt;width:572pt;height:15.4pt"></i>
+<i style="left:15pt;top:226.9pt;width:572pt;height:16pt"></i>
+<i style="left:15pt;top:331.3pt;width:572pt;height:15.4pt"></i>
+<i style="left:15pt;top:405.9pt;width:572pt;height:16pt"></i>
+<i style="left:15pt;top:552.3pt;width:572pt;height:17pt"></i>
+<i style="left:14.6pt;top:8.4pt;width:0.8pt;height:65.6pt"></i>
+<i style="left:521.2pt;top:30.8pt;width:0.8pt;height:10.8pt"></i>
+<i style="left:586.4pt;top:9.2pt;width:0.8pt;height:64.8pt"></i>
+<i style="left:453.9pt;top:30pt;width:0.8pt;height:11.6pt"></i>
+<i style="left:14.6pt;top:88.4pt;width:0.8pt;height:138.8pt"></i>
+<i style="left:586.4pt;top:89.2pt;width:0.8pt;height:138pt"></i>
+<i style="left:521.2pt;top:89.2pt;width:0.8pt;height:31pt"></i>
+<i style="left:152.8pt;top:120.2pt;width:0.9pt;height:26.4pt"></i>
+<i style="left:14.6pt;top:242.3pt;width:0.8pt;height:89.4pt"></i>
+<i style="left:152.8pt;top:286.8pt;width:0.9pt;height:28.1pt"></i>
+<i style="left:243.5pt;top:163.4pt;width:0.8pt;height:63.8pt"></i>
+<i style="left:453.9pt;top:163.4pt;width:0.8pt;height:63.8pt"></i>
+<i style="left:521.2pt;top:258.2pt;width:0.8pt;height:28.7pt"></i>
+<i style="left:586.4pt;top:243pt;width:0.8pt;height:88.7pt"></i>
+<i style="left:14.6pt;top:346.1pt;width:0.8pt;height:15.4pt"></i>
+<i style="left:15.8pt;top:361.5pt;width:138.3pt;height:1.6pt"></i>
+<i style="left:152.8pt;top:346.9pt;width:0.9pt;height:14.6pt"></i>
+<i style="left:14.2pt;top:361.5pt;width:1.6pt;height:12.8pt"></i>
+<i style="left:15.8pt;top:372.7pt;width:138.3pt;height:1.6pt"></i>
+<i style="left:152.4pt;top:363.1pt;width:1.6pt;height:11.2pt"></i>
+<i style="left:14.6pt;top:374.3pt;width:0.8pt;height:32pt"></i>
+<i style="left:171.1pt;top:346.9pt;width:0.8pt;height:59.4pt"></i>
+<i style="left:453.9pt;top:346.9pt;width:0.8pt;height:59.4pt"></i>
+<i style="left:586.4pt;top:346.9pt;width:0.8pt;height:59.4pt"></i>
+<i style="left:14.6pt;top:421.3pt;width:0.8pt;height:131.4pt"></i>
+<i style="left:586.4pt;top:422.1pt;width:0.8pt;height:93.6pt"></i>
+<i style="left:171.1pt;top:422.1pt;width:0.8pt;height:130.6pt"></i>
+<i style="left:453.9pt;top:422.1pt;width:0.8pt;height:130.6pt"></i>
+<i style="left:521.2pt;top:346.9pt;width:0.8pt;height:59.4pt"></i>
+<i style="left:152.8pt;top:374.3pt;width:0.9pt;height:32pt"></i>
+<i style="left:243.5pt;top:346.9pt;width:0.8pt;height:59.4pt"></i>
+<i style="left:14.6pt;top:568.7pt;width:0.8pt;height:311.9pt"></i>
+<i style="left:586.4pt;top:569.5pt;width:0.8pt;height:311.1pt"></i>
+<i style="left:453.9pt;top:591.1pt;width:0.8pt;height:75.7pt"></i>
+<i style="left:521.2pt;top:601.1pt;width:0.8pt;height:11.6pt"></i>
+<i style="left:542.6pt;top:30.8pt;width:0.8pt;height:10.8pt"></i>
+<i style="left:152.8pt;top:731.5pt;width:0.9pt;height:64.7pt"></i>
+<i style="left:243.5pt;top:731.5pt;width:0.8pt;height:64.7pt"></i>
+<i style="left:171.1pt;top:591.1pt;width:0.8pt;height:75.7pt"></i>
+<i style="left:220.1pt;top:346.9pt;width:0.8pt;height:59.4pt"></i>
+<i style="left:15.4pt;top:8.4pt;width:571.8pt;height:0.8pt"></i>
+<i style="left:454.8pt;top:30pt;width:132.4pt;height:0.8pt"></i>
+<i style="left:454.8pt;top:40.8pt;width:132.4pt;height:0.8pt"></i>
+<i style="left:15.4pt;top:73.2pt;width:571.8pt;height:0.8pt"></i>
+<i style="left:15.4pt;top:88.4pt;width:571.8pt;height:0.8pt"></i>
+<i style="left:15.4pt;top:119.4pt;width:571.8pt;height:0.8pt"></i>
+<i style="left:15.4pt;top:145.8pt;width:571.8pt;height:0.8pt"></i>
+<i style="left:15.4pt;top:162.6pt;width:571.8pt;height:0.8pt"></i>
+<i style="left:15.4pt;top:184.2pt;width:571.8pt;height:0.8pt"></i>
+<i style="left:15.4pt;top:203.9pt;width:571.8pt;height:0.7pt"></i>
+<i style="left:15.4pt;top:226.5pt;width:571.8pt;height:0.7pt"></i>
+<i style="left:15.4pt;top:242.2pt;width:571.8pt;height:0.8pt"></i>
+<i style="left:15.4pt;top:257.5pt;width:571.8pt;height:0.7pt"></i>
+<i style="left:15.4pt;top:286.1pt;width:571.8pt;height:0.8pt"></i>
+<i style="left:15.4pt;top:314.1pt;width:571.8pt;height:0.8pt"></i>
+<i style="left:15.4pt;top:330.9pt;width:571.8pt;height:0.8pt"></i>
+<i style="left:15.4pt;top:346.1pt;width:571.8pt;height:0.8pt"></i>
+<i style="left:154.1pt;top:361.9pt;width:433.1pt;height:0.8pt"></i>
+<i style="left:154.1pt;top:373.1pt;width:433.1pt;height:0.8pt"></i>
+<i style="left:15.4pt;top:383.9pt;width:571.8pt;height:0.8pt"></i>
+<i style="left:15.4pt;top:394.7pt;width:571.8pt;height:0.8pt"></i>
+<i style="left:15.4pt;top:405.5pt;width:571.8pt;height:0.8pt"></i>
+<i style="left:15.4pt;top:421.3pt;width:571.8pt;height:0.8pt"></i>
+<i style="left:15.4pt;top:432.1pt;width:571.8pt;height:0.8pt"></i>
+<i style="left:454.8pt;top:514.9pt;width:132.4pt;height:0.8pt"></i>
+<i style="left:15.4pt;top:551.9pt;width:439.4pt;height:0.8pt"></i>
+<i style="left:15.4pt;top:568.7pt;width:571.8pt;height:0.8pt"></i>
+<i style="left:15.4pt;top:590.3pt;width:571.8pt;height:0.8pt"></i>
+<i style="left:522pt;top:601.1pt;width:65.2pt;height:0.8pt"></i>
+<i style="left:522pt;top:611.9pt;width:65.2pt;height:0.8pt"></i>
+<i style="left:171.8pt;top:666pt;width:415.4pt;height:0.8pt"></i>
+<i style="left:15.4pt;top:730.8pt;width:571.8pt;height:0.7pt"></i>
+<i style="left:15.4pt;top:879.8pt;width:571.8pt;height:0.8pt"></i>
+<i style="left:240.1pt;top:39.9pt;width:156.9pt;height:1.2pt"></i>
+<i style="left:181.6pt;top:182.7pt;width:47.7pt;height:.6pt"></i>
+<i style="left:516.8pt;top:326.1pt;width:54.2pt;height:.6pt"></i>
+<i style="left:456.2pt;top:512.8pt;width:124.1pt;height:.6pt"></i>
+<i style="left:288.4pt;top:587.5pt;width:78.1pt;height:.6pt"></i>
+<i style="left:432.4pt;top:587.5pt;width:83.8pt;height:.6pt"></i>
+<i style="left:333.6pt;top:590.1pt;width:.6pt;height:75.7pt"></i>
+<i style="left:396.6pt;top:730.5pt;width:.6pt;height:150.2pt"></i>
+<i style="left:245.2pt;top:762.4pt;width:91.1pt;height:.6pt"></i>
+<i style="left:14.6pt;top:795pt;width:382.3pt;height:.6pt"></i>
+<i style="left:318.9pt;top:347.1pt;width:.6pt;height:59.4pt"></i>
+<b style="left:550.8pt;top:91.3pt;width:12.2pt;height:8.4pt"></b>
+<b style="left:128.5pt;top:121.1pt;width:16.7pt;height:10.7pt"></b>
+<b style="left:109.9pt;top:121.1pt;width:17.3pt;height:10.7pt"></b>
+<b style="left:75.4pt;top:121.1pt;width:33pt;height:10.7pt"></b>
+<b style="left:569pt;top:91.3pt;width:12.2pt;height:8.4pt"></b>
+<b style="left:71.1pt;top:148pt;width:187.3pt;height:12.4pt"></b>
+<b style="left:389.3pt;top:148.6pt;width:178.9pt;height:12.4pt"></b>
+<b style="left:284.3pt;top:167.7pt;width:155.2pt;height:14pt"></b>
+<b style="left:503.4pt;top:167.1pt;width:74.3pt;height:13.5pt"></b>
+<b style="left:100.3pt;top:163.7pt;width:6.7pt;height:6.8pt"></b>
+<b style="left:101.1pt;top:174pt;width:6.7pt;height:6.7pt"></b>
+<b style="left:179.7pt;top:163.7pt;width:6.8pt;height:6.8pt"></b>
+<b style="left:94.5pt;top:187.6pt;width:133.3pt;height:14pt"></b>
+<b style="left:293pt;top:187pt;width:148.5pt;height:14.1pt"></b>
+<b style="left:511.6pt;top:186.4pt;width:66.4pt;height:14.1pt"></b>
+<b style="left:223.5pt;top:121.1pt;width:338.7pt;height:11.8pt"></b>
+<b style="left:249.9pt;top:215.2pt;width:6.7pt;height:6.7pt"></b>
+<b style="left:290.1pt;top:215.2pt;width:6.7pt;height:6.7pt"></b>
+<b style="left:360.1pt;top:214.5pt;width:72pt;height:9.5pt"></b>
+<b style="left:549pt;top:259.7pt;width:12.3pt;height:8.4pt"></b>
+<b style="left:569.1pt;top:259.7pt;width:12.2pt;height:8.4pt"></b>
+<b style="left:94pt;top:260.2pt;width:332.9pt;height:14.1pt"></b>
+<b style="left:25.7pt;top:243.9pt;width:6.8pt;height:6.7pt"></b>
+<b style="left:71.1pt;top:244.5pt;width:6.8pt;height:6.7pt"></b>
+<b style="left:102.2pt;top:244.5pt;width:6.7pt;height:6.7pt"></b>
+<b style="left:128.5pt;top:287.7pt;width:16.7pt;height:10.7pt"></b>
+<b style="left:109.9pt;top:287.7pt;width:17.3pt;height:10.7pt"></b>
+<b style="left:75.4pt;top:287.7pt;width:33pt;height:10.7pt"></b>
+<b data-sa="1" style="left:311.6pt;top:287.7pt;width:254.3pt;height:11.8pt"></b>
+<b style="left:71.1pt;top:316.2pt;width:187.3pt;height:12.4pt"></b>
+<b style="left:377pt;top:317.4pt;width:6.8pt;height:6.7pt"></b>
+<b style="left:457.9pt;top:316.8pt;width:6.7pt;height:6.8pt"></b>
+<b style="left:414.4pt;top:316.8pt;width:6.7pt;height:6.8pt"></b>
+<b style="left:220pt;top:288.8pt;width:338.6pt;height:11.8pt"></b>
+<b style="left:456.8pt;top:434.8pt;width:6.7pt;height:6.8pt"></b>
+<b style="left:457.3pt;top:445.6pt;width:6.8pt;height:6.8pt"></b>
+<b style="left:457.3pt;top:455.9pt;width:6.8pt;height:6.7pt"></b>
+<b style="left:456.8pt;top:467.8pt;width:6.7pt;height:6.7pt"></b>
+<b style="left:457.3pt;top:478.6pt;width:6.8pt;height:6.7pt"></b>
+<b style="left:457.3pt;top:488.8pt;width:6.8pt;height:6.8pt"></b>
+<b style="left:19.2pt;top:581.6pt;width:6.8pt;height:6.8pt"></b>
+<b style="left:73.5pt;top:581.6pt;width:6.8pt;height:6.8pt"></b>
+<b style="left:227.1pt;top:581.6pt;width:6.7pt;height:6.8pt"></b>
+<b style="left:372.9pt;top:581.1pt;width:6.8pt;height:6.7pt"></b>
+<b style="left:18.1pt;top:593pt;width:6.8pt;height:6.8pt"></b>
+<b style="left:28pt;top:603.8pt;width:6.7pt;height:6.8pt"></b>
+<b style="left:28pt;top:614.6pt;width:6.7pt;height:6.8pt"></b>
+<b style="left:28pt;top:625.4pt;width:6.7pt;height:6.8pt"></b>
+<b style="left:27.4pt;top:636.2pt;width:6.8pt;height:6.8pt"></b>
+<b style="left:27.4pt;top:647.6pt;width:6.8pt;height:6.7pt"></b>
+<b style="left:27.4pt;top:658.4pt;width:6.8pt;height:6.7pt"></b>
+<b style="left:457.9pt;top:625.4pt;width:6.7pt;height:6.8pt"></b>
+<b style="left:457.3pt;top:636.2pt;width:6.8pt;height:6.8pt"></b>
+<b style="left:457.3pt;top:647pt;width:6.8pt;height:6.8pt"></b>
+<b style="left:457.9pt;top:657.8pt;width:6.7pt;height:6.8pt"></b>
+<b style="left:332.6pt;top:666.9pt;width:110.8pt;height:10.7pt"></b>
+<b style="left:474.2pt;top:668.6pt;width:6.8pt;height:6.8pt"></b>
+<b style="left:457.3pt;top:689.6pt;width:6.8pt;height:6.8pt"></b>
+<b style="left:457.3pt;top:701pt;width:6.8pt;height:6.8pt"></b>
+<b style="left:457.9pt;top:711.8pt;width:6.7pt;height:6.8pt"></b>
+<b style="left:514.4pt;top:668pt;width:6.7pt;height:6.8pt"></b>
+<b style="left:457.9pt;top:722.6pt;width:6.7pt;height:6.8pt"></b>
+<b style="left:16.3pt;top:743.1pt;width:6.7pt;height:6.7pt"></b>
+<b style="left:25.2pt;top:755pt;width:6.7pt;height:6.8pt"></b>
+<b style="left:25.2pt;top:765.2pt;width:6.7pt;height:6.8pt"></b>
+<b style="left:25.2pt;top:775.5pt;width:6.7pt;height:6.7pt"></b>
+<b style="left:25.7pt;top:786.3pt;width:6.8pt;height:6.7pt"></b>
+<b style="left:334.4pt;top:732.3pt;width:59.6pt;height:32.1pt"></b>
+<b style="left:23.9pt;top:819.2pt;width:6.7pt;height:6.8pt"></b>
+<b style="left:23.9pt;top:830.6pt;width:6.7pt;height:6.8pt"></b>
+<b style="left:24.5pt;top:841.4pt;width:6.7pt;height:6.8pt"></b>
+<b style="left:287.1pt;top:795.4pt;width:104pt;height:9.6pt"></b>
+<b style="left:85.1pt;top:93.3pt;width:338.7pt;height:11.9pt"></b>
+<u style="left:481.6pt;top:42.7pt;font-size:8.2pt">MM</u>
+<u style="left:527.8pt;top:42.7pt;font-size:8.2pt">DD</u>
+<u style="left:557.4pt;top:42.7pt;font-size:8.2pt">YYYY</u>
+<u style="left:16.6pt;top:125.4pt;font-size:7.6pt;font-weight:700">3.</u>
+<u style="left:24.2pt;top:125.4pt;font-size:7.6pt;font-weight:700">Date</u>
+<u style="left:41pt;top:125.4pt;font-size:7.6pt;font-weight:700">of</u>
+<u style="left:49.2pt;top:125.4pt;font-size:7.6pt;font-weight:700">Birth*</u>
+<u style="left:16.6pt;top:151pt;font-size:7.6pt;font-weight:700">5.</u>
+<u style="left:24.2pt;top:151pt;font-size:7.6pt;font-weight:700">Place</u>
+<u style="left:42.6pt;top:151pt;font-size:7.6pt;font-weight:700">of</u>
+<u style="left:50.8pt;top:151pt;font-size:7.6pt;font-weight:700">Birth*</u>
+<u style="left:288.7pt;top:151.2pt;font-size:7.6pt;font-weight:700">6.</u>
+<u style="left:296.3pt;top:151.2pt;font-size:7.6pt;font-weight:700">Relationship</u>
+<u style="left:336.9pt;top:151.2pt;font-size:7.6pt;font-weight:700">to</u>
+<u style="left:345.3pt;top:151.2pt;font-size:7.6pt;font-weight:700">Beneficiary*</u>
+<u style="left:250.3pt;top:186.9pt;font-size:6.8pt;font-weight:700">11.</u>
+<u style="left:260.5pt;top:186.9pt;font-size:6.8pt;font-weight:700">Skills</u>
+<u style="left:251.8pt;top:195.9pt;font-size:6.8pt;font-weight:700">Occupation*</u>
+<u style="left:16.6pt;top:297.6pt;font-size:7.6pt;font-weight:700">3.</u>
+<u style="left:24.2pt;top:297.6pt;font-size:7.6pt;font-weight:700">Date</u>
+<u style="left:41pt;top:297.6pt;font-size:7.6pt;font-weight:700">of</u>
+<u style="left:49.2pt;top:297.6pt;font-size:7.6pt;font-weight:700">Birth*</u>
+<u style="left:16.6pt;top:319.2pt;font-size:7.6pt;font-weight:700">5.</u>
+<u style="left:24.2pt;top:319.2pt;font-size:7.6pt;font-weight:700">Place</u>
+<u style="left:42.6pt;top:319.2pt;font-size:7.6pt;font-weight:700">of</u>
+<u style="left:50.8pt;top:319.2pt;font-size:7.6pt;font-weight:700">Birth*</u>
+<u style="left:322.9pt;top:319.2pt;font-size:7.6pt">6.</u>
+<u style="left:330.5pt;top:319.2pt;font-size:7.6pt">Civil</u>
+<u style="left:345.1pt;top:319.2pt;font-size:7.6pt">Status*</u>
+<u style="left:157.7pt;top:350.8pt;font-size:7.6pt">Sex</u>
+<u style="left:191.1pt;top:347.9pt;font-size:6pt">AGE</u>
+<u style="left:227.5pt;top:347.7pt;font-size:6pt">Civil</u>
+<u style="left:224.9pt;top:355.9pt;font-size:6pt">Status</u>
+<u style="left:459.9pt;top:350.8pt;font-size:7.6pt">Skills</u>
+<u style="left:476.9pt;top:350.8pt;font-size:7.6pt">/</u>
+<u style="left:481.7pt;top:350.8pt;font-size:7.6pt">Occupation</u>
+<u style="left:16.6pt;top:570.9pt;font-size:7.6pt">1.</u>
+<u style="left:24.2pt;top:570.9pt;font-size:7.6pt">Nature</u>
+<u style="left:47.6pt;top:570.9pt;font-size:7.6pt">of</u>
+<u style="left:55.7pt;top:570.9pt;font-size:7.6pt">Services</u>
+<u style="left:82.5pt;top:570.9pt;font-size:7.6pt">/</u>
+<u style="left:87.3pt;top:570.9pt;font-size:7.6pt">Assistance</u>
+<u style="left:32.8pt;top:592.5pt;font-size:7.6pt">Financial</u>
+<u style="left:61.8pt;top:592.5pt;font-size:7.6pt">Assistance</u>
+<u style="left:342.7pt;top:592.5pt;font-size:7.6pt">Value</u>
+<u style="left:362.1pt;top:592.5pt;font-size:7.6pt">(Pesos)</u>
+<u style="left:455.8pt;top:593.4pt;font-size:6pt">Amount</u>
+<u style="left:476.9pt;top:593.4pt;font-size:6pt">of</u>
+<u style="left:483.3pt;top:593.4pt;font-size:6pt">Financial</u>
+<u style="left:506.3pt;top:593.4pt;font-size:6pt">Assistance</u>
+<u style="left:533.2pt;top:593.4pt;font-size:6pt">to</u>
+<u style="left:539.8pt;top:593.4pt;font-size:6pt">be</u>
+<u style="left:547.4pt;top:593.4pt;font-size:6pt">extended</u>
+<u style="left:41.8pt;top:603.3pt;font-size:7.6pt">Medical</u>
+<u style="left:41.8pt;top:614.1pt;font-size:7.6pt">Burial</u>
+<u style="left:455.8pt;top:615pt;font-size:6pt">Amount</u>
+<u style="left:476.9pt;top:615pt;font-size:6pt">of</u>
+<u style="left:483.3pt;top:615pt;font-size:6pt">Financial</u>
+<u style="left:506.3pt;top:615pt;font-size:6pt">Assistance</u>
+<u style="left:533.2pt;top:615pt;font-size:6pt">to</u>
+<u style="left:539.8pt;top:615pt;font-size:6pt">be</u>
+<u style="left:547.4pt;top:615pt;font-size:6pt">extended</u>
+<u style="left:40pt;top:624.9pt;font-size:7.6pt">Transportation</u>
+<u style="left:472.3pt;top:624.4pt;font-size:8.2pt">Cash</u>
+<u style="left:40pt;top:635.7pt;font-size:7.6pt">Educational</u>
+<u style="left:470.5pt;top:635.2pt;font-size:8.2pt">Check</u>
+<u style="left:40pt;top:646.5pt;font-size:7.6pt">Food</u>
+<u style="left:57.2pt;top:646.5pt;font-size:7.6pt">Subsidy</u>
+<u style="left:470.5pt;top:646pt;font-size:8.2pt">Guarantee</u>
+<u style="left:507.9pt;top:646pt;font-size:8.2pt">Letter</u>
+<u style="left:40pt;top:657.3pt;font-size:7.6pt">Others</u>
+<u style="left:173.1pt;top:657.3pt;font-size:7.6pt">Specify</u>
+<u style="left:196.8pt;top:657.3pt;font-size:7.6pt">:_______________________________</u>
+<u style="left:472.3pt;top:656.8pt;font-size:8.2pt">Tickets</u>
+<u style="left:281.5pt;top:668.1pt;font-size:7.6pt">(a)</u>
+<u style="left:291.7pt;top:668.1pt;font-size:7.6pt">Sub</u>
+<u style="left:304.9pt;top:668.1pt;font-size:7.6pt">-</u>
+<u style="left:309.1pt;top:668.1pt;font-size:7.6pt">Total</u>
+<u style="left:455.9pt;top:679.6pt;font-size:6.8pt">Source</u>
+<u style="left:476.5pt;top:679.6pt;font-size:6.8pt">of</u>
+<u style="left:483.7pt;top:679.6pt;font-size:6.8pt">Assistance</u>
+<u style="left:470.5pt;top:689.2pt;font-size:8.2pt">Regular</u>
+<u style="left:497.5pt;top:689.2pt;font-size:8.2pt">Funds</u>
+<u style="left:470.5pt;top:700pt;font-size:8.2pt">Donation</u>
+<u style="left:470.5pt;top:710.8pt;font-size:8.2pt">Expanded</u>
+<u style="left:505.5pt;top:710.8pt;font-size:8.2pt">AICS</u>
+<u style="left:470.5pt;top:721.6pt;font-size:8.2pt">Others____________</u>
+<u style="left:29.4pt;top:743.2pt;font-size:8.2pt">Material</u>
+<u style="left:59.4pt;top:743.2pt;font-size:8.2pt">Assistance</u>
+<u style="left:40.2pt;top:754.1pt;font-size:8.2pt">Food</u>
+<u style="left:59pt;top:754.1pt;font-size:8.2pt">Pack</u>
+<u style="left:40.2pt;top:764.8pt;font-size:8.2pt">Used</u>
+<u style="left:58.8pt;top:764.8pt;font-size:8.2pt">Clothing</u>
+<u style="left:245.5pt;top:765.8pt;font-size:6.8pt">Client's</u>
+<u style="left:267.2pt;top:765.8pt;font-size:6.8pt">Signature</u>
+<u style="left:339.7pt;top:765.8pt;font-size:6.8pt">Thumbmark</u>
+<u style="left:40.2pt;top:775.6pt;font-size:8.2pt">Hot</u>
+<u style="left:54.4pt;top:775.6pt;font-size:8.2pt">Meal</u>
+<u style="left:38.4pt;top:786.4pt;font-size:8.2pt">Assistive</u>
+<u style="left:68.8pt;top:786.4pt;font-size:8.2pt">Device</u>
+<u style="left:16.8pt;top:808.1pt;font-size:8.2pt">Source</u>
+<u style="left:41.4pt;top:808.1pt;font-size:8.2pt">of</u>
+<u style="left:50.2pt;top:808.1pt;font-size:8.2pt">Assistance</u>
+<u style="left:36.6pt;top:818.8pt;font-size:8.2pt">Regular</u>
+<u style="left:63.6pt;top:818.8pt;font-size:8.2pt">Funds</u>
+<u style="left:36.6pt;top:829.7pt;font-size:8.2pt">Donation</u>
+<u style="left:36.6pt;top:840.5pt;font-size:8.2pt">Expanded</u>
+<u style="left:71.5pt;top:840.5pt;font-size:8.2pt">AICS</u>
+<u style="left:477.8pt;top:732.4pt;font-size:8.2pt">Assessed</u>
+<u style="left:509.5pt;top:732.4pt;font-size:8.2pt">By:</u>
+<u style="left:16.8pt;top:230.3pt;font-size:8.2pt;font-weight:700;color:#fff">II.</u>
+<u style="left:25.2pt;top:230.3pt;font-size:8.2pt;font-weight:700;color:#fff">Beneficiary's</u>
+<u style="left:70.4pt;top:230.3pt;font-size:8.2pt;font-weight:700;color:#fff">Identifying</u>
+<u style="left:108.8pt;top:230.3pt;font-size:8.2pt;font-weight:700;color:#fff">Information</u>
+<u style="left:455.9pt;top:186.1pt;font-size:6.8pt;font-weight:700">12.</u>
+<u style="left:466.1pt;top:186.1pt;font-size:6.8pt;font-weight:700">Estimated</u>
+<u style="left:455.9pt;top:195.1pt;font-size:6.8pt;font-weight:700">Monthly</u>
+<u style="left:481.5pt;top:195.1pt;font-size:6.8pt;font-weight:700">Income*</u>
+<u style="left:16.8pt;top:76.9pt;font-size:8.2pt;font-weight:700;color:#fff">I.</u>
+<u style="left:23pt;top:76.9pt;font-size:8.2pt;font-weight:700;color:#fff">Client's</u>
+<u style="left:49.8pt;top:76.9pt;font-size:8.2pt;font-weight:700;color:#fff">Identifying</u>
+<u style="left:88.2pt;top:76.9pt;font-size:8.2pt;font-weight:700;color:#fff">Information</u>
+<u style="left:16.6pt;top:95.8pt;font-size:7.6pt">1.</u>
+<u style="left:22.4pt;top:95.8pt;font-size:7.6pt;font-weight:700">Client's</u>
+<u style="left:47pt;top:95.8pt;font-size:7.6pt;font-weight:700">Name</u>
+<u style="left:65.8pt;top:95.8pt;font-size:7.6pt">*</u>
+<u style="left:154.8pt;top:123pt;font-size:7.6pt;font-weight:700">4.</u>
+<u style="left:162.4pt;top:123pt;font-size:7.6pt;font-weight:700">Present</u>
+<u style="left:188.2pt;top:123pt;font-size:7.6pt;font-weight:700">Address*</u>
+<u style="left:16.6pt;top:164.6pt;font-size:7.6pt;font-weight:700">7.</u>
+<u style="left:24.2pt;top:164.6pt;font-size:7.6pt;font-weight:700">Civil</u>
+<u style="left:39pt;top:164.6pt;font-size:7.6pt;font-weight:700">Status*</u>
+<u style="left:245.5pt;top:169.8pt;font-size:7.6pt;font-weight:700">8.</u>
+<u style="left:253.1pt;top:169.8pt;font-size:7.6pt;font-weight:700">Religion*</u>
+<u style="left:455.9pt;top:169.8pt;font-size:7.6pt;font-weight:700">9.</u>
+<u style="left:463.5pt;top:169.8pt;font-size:7.6pt;font-weight:700">Nationality*</u>
+<u style="left:16.6pt;top:186.3pt;font-size:6.8pt;font-weight:700">10.</u>
+<u style="left:26.8pt;top:186.3pt;font-size:6.8pt;font-weight:700">Highest</u>
+<u style="left:49.6pt;top:186.3pt;font-size:6.8pt;font-weight:700">Educational</u>
+<u style="left:53.4pt;top:195.3pt;font-size:6.8pt;font-weight:700">Attainment</u>
+<u style="left:245.5pt;top:205.8pt;font-size:7.6pt;font-weight:700">14.</u>
+<u style="left:256.9pt;top:205.8pt;font-size:7.6pt;font-weight:700">Mode</u>
+<u style="left:277pt;top:205.8pt;font-size:7.6pt;font-weight:700">of</u>
+<u style="left:285.2pt;top:205.8pt;font-size:7.6pt;font-weight:700">Admission</u>
+<u style="left:319.4pt;top:205.8pt;font-size:7.6pt;font-weight:700">*</u>
+<u style="left:344.8pt;top:205.8pt;font-size:7.6pt;font-weight:700">15.</u>
+<u style="left:356.2pt;top:205.8pt;font-size:7.6pt;font-weight:700">Referring</u>
+<u style="left:387.1pt;top:205.8pt;font-size:7.6pt;font-weight:700">party</u>
+<u style="left:16.6pt;top:205.9pt;font-size:6.8pt">13.</u>
+<u style="left:26.8pt;top:205.9pt;font-size:6.8pt">Philhealth</u>
+<u style="left:56.3pt;top:205.9pt;font-size:6.8pt">No.*</u>
+<u style="left:455.9pt;top:205.7pt;font-size:6.8pt">16.</u>
+<u style="left:466.1pt;top:205.7pt;font-size:6.8pt">Contact</u>
+<u style="left:488.9pt;top:205.7pt;font-size:6.8pt">#</u>
+<u style="left:16.6pt;top:263.6pt;font-size:7.6pt">1.Beneficiary</u>
+<u style="left:57pt;top:263.6pt;font-size:7.6pt;font-weight:700">'s</u>
+<u style="left:63.6pt;top:263.6pt;font-size:7.6pt;font-weight:700">Name</u>
+<u style="left:82.4pt;top:263.6pt;font-size:7.6pt">*</u>
+<u style="left:16.8pt;top:334.6pt;font-size:8.2pt;font-weight:700;color:#fff">III.</u>
+<u style="left:27.4pt;top:334.6pt;font-size:8.2pt;font-weight:700;color:#fff">Beneficiary's</u>
+<u style="left:72.6pt;top:334.6pt;font-size:8.2pt;font-weight:700;color:#fff">Family</u>
+<u style="left:96.6pt;top:334.6pt;font-size:8.2pt;font-weight:700;color:#fff">Composition</u>
+<u style="left:141.3pt;top:334.6pt;font-size:8.2pt;font-weight:700;color:#fff">(use</u>
+<u style="left:157.5pt;top:334.6pt;font-size:8.2pt;font-weight:700;color:#fff">additional</u>
+<u style="left:193.7pt;top:334.6pt;font-size:8.2pt;font-weight:700;color:#fff">sheets</u>
+<u style="left:217.5pt;top:334.6pt;font-size:8.2pt;font-weight:700;color:#fff">as</u>
+<u style="left:226.5pt;top:334.6pt;font-size:8.2pt;font-weight:700;color:#fff">necessary)</u>
+<u style="left:154.8pt;top:292.4pt;font-size:7.6pt;font-weight:700">4.</u>
+<u style="left:162.4pt;top:292.4pt;font-size:7.6pt;font-weight:700">Present</u>
+<u style="left:188.2pt;top:292.4pt;font-size:7.6pt;font-weight:700">Address*</u>
+<u style="left:455.9pt;top:497.5pt;font-size:7.6pt">4.</u>
+<u style="left:463.5pt;top:497.5pt;font-size:7.6pt">Client</u>
+<u style="left:483.3pt;top:497.5pt;font-size:7.6pt">Sub-</u>
+<u style="left:498.9pt;top:497.5pt;font-size:7.6pt">Category</u>
+<u style="left:16.6pt;top:423.3pt;font-size:6.8pt">1.</u>
+<u style="left:23.4pt;top:423.3pt;font-size:6.8pt">Problem</u>
+<u style="left:48.5pt;top:423.3pt;font-size:6.8pt">Presented</u>
+<u style="left:173.1pt;top:423.3pt;font-size:6.8pt">2.</u>
+<u style="left:179.8pt;top:423.3pt;font-size:6.8pt">Social</u>
+<u style="left:197.4pt;top:423.3pt;font-size:6.8pt">Worker's</u>
+<u style="left:224pt;top:423.3pt;font-size:6.8pt">Assessment</u>
+<u style="left:455.9pt;top:423.3pt;font-size:6.8pt">3.</u>
+<u style="left:462.7pt;top:423.3pt;font-size:6.8pt">Client</u>
+<u style="left:480.3pt;top:423.3pt;font-size:6.8pt">Category</u>
+<u style="left:506.5pt;top:423.3pt;font-size:6.8pt">(check</u>
+<u style="left:525.7pt;top:423.3pt;font-size:6.8pt">only</u>
+<u style="left:539pt;top:423.3pt;font-size:6.8pt">one)</u>
+<u style="left:525.8pt;top:350.7pt;font-size:6.8pt">Est.</u>
+<u style="left:537.4pt;top:350.7pt;font-size:6.8pt">Monthly</u>
+<u style="left:562.3pt;top:350.7pt;font-size:6.8pt">Income</u>
+<u style="left:16.8pt;top:556.4pt;font-size:8.2pt;font-weight:700;color:#fff">V.</u>
+<u style="left:25.6pt;top:556.4pt;font-size:8.2pt;font-weight:700;color:#fff">Recommended</u>
+<u style="left:78.8pt;top:556.4pt;font-size:8.2pt;font-weight:700;color:#fff">Services</u>
+<u style="left:108.1pt;top:556.4pt;font-size:8.2pt;font-weight:700;color:#fff">and</u>
+<u style="left:122.7pt;top:556.4pt;font-size:8.2pt;font-weight:700;color:#fff">Assistance</u>
+<u style="left:158.1pt;top:786.4pt;font-size:8.2pt">Specify:______________</u>
+<u style="left:16.8pt;top:409.4pt;font-size:8.2pt;font-weight:700;color:#fff">IV.</u>
+<u style="left:27.8pt;top:409.4pt;font-size:8.2pt;font-weight:700;color:#fff">Assessment</u>
+<u style="left:69.6pt;top:409.4pt;font-size:8.2pt;font-weight:700;color:#fff">(use</u>
+<u style="left:85.8pt;top:409.4pt;font-size:8.2pt;font-weight:700;color:#fff">additional</u>
+<u style="left:122pt;top:409.4pt;font-size:8.2pt;font-weight:700;color:#fff">sheets</u>
+<u style="left:145.7pt;top:409.4pt;font-size:8.2pt;font-weight:700;color:#fff">as</u>
+<u style="left:154.7pt;top:409.4pt;font-size:8.2pt;font-weight:700;color:#fff">necessary)</u>
+<u style="left:475.9pt;top:434.6pt;font-size:6pt">Children</u>
+<u style="left:497.9pt;top:434.6pt;font-size:6pt">in</u>
+<u style="left:503.9pt;top:434.6pt;font-size:6pt">Need</u>
+<u style="left:518.2pt;top:434.6pt;font-size:6pt">of</u>
+<u style="left:524.6pt;top:434.6pt;font-size:6pt">Special</u>
+<u style="left:543.2pt;top:434.6pt;font-size:6pt">Protection</u>
+<u style="left:477.6pt;top:445.4pt;font-size:6pt">Youth</u>
+<u style="left:493.5pt;top:445.4pt;font-size:6pt">in</u>
+<u style="left:499.5pt;top:445.4pt;font-size:6pt">Need</u>
+<u style="left:513.9pt;top:445.4pt;font-size:6pt">of</u>
+<u style="left:520.3pt;top:445.4pt;font-size:6pt">Special</u>
+<u style="left:538.8pt;top:445.4pt;font-size:6pt">Protection</u>
+<u style="left:475.9pt;top:456.6pt;font-size:5.2pt">Women</u>
+<u style="left:494.1pt;top:456.6pt;font-size:5.2pt">in</u>
+<u style="left:499.3pt;top:456.6pt;font-size:5.2pt">Especially</u>
+<u style="left:521.1pt;top:456.6pt;font-size:5.2pt">Difficulty</u>
+<u style="left:541.4pt;top:456.6pt;font-size:5.2pt">Circumstances</u>
+<u style="left:469.8pt;top:467pt;font-size:6pt">Person</u>
+<u style="left:488.1pt;top:467pt;font-size:6pt">with</u>
+<u style="left:500.3pt;top:467pt;font-size:6pt">Disability</u>
+<u style="left:467.1pt;top:477.3pt;font-size:6.8pt">Senior</u>
+<u style="left:486.6pt;top:477.3pt;font-size:6.8pt">Citizen</u>
+<u style="left:477.4pt;top:488.6pt;font-size:6pt">Family</u>
+<u style="left:494.7pt;top:488.6pt;font-size:6pt">Head</u>
+<u style="left:508.9pt;top:488.6pt;font-size:6pt">and</u>
+<u style="left:519.5pt;top:488.6pt;font-size:6pt">other</u>
+<u style="left:534.3pt;top:488.6pt;font-size:6pt">Needy</u>
+<u style="left:551.4pt;top:488.6pt;font-size:6pt">Adult</u>
+<u style="left:83.4pt;top:25.1pt;font-size:7.5pt">Republic</u>
+<u style="left:111.3pt;top:25.1pt;font-size:7.5pt">of</u>
+<u style="left:119.2pt;top:25.1pt;font-size:7.5pt">the</u>
+<u style="left:131.1pt;top:25.1pt;font-size:7.5pt">Philippines</u>
+<u style="left:83.4pt;top:34.2pt;font-size:7.5pt">Province</u>
+<u style="left:111.4pt;top:34.2pt;font-size:7.5pt">of</u>
+<u style="left:119.4pt;top:34.2pt;font-size:7.5pt">Pampanga</u>
+<u style="left:83.4pt;top:43.4pt;font-size:7.5pt">Mabalacat</u>
+<u style="left:117.3pt;top:43.4pt;font-size:7.5pt">City</u>
+<u style="left:83.4pt;top:52.6pt;font-size:7.5pt">CITY</u>
+<u style="left:98.2pt;top:52.6pt;font-size:7.5pt">SOCIAL</u>
+<u style="left:121.8pt;top:52.6pt;font-size:7.5pt">WELFARE</u>
+<u style="left:152.5pt;top:52.6pt;font-size:7.5pt">AND</u>
+<u style="left:168pt;top:52.6pt;font-size:7.5pt">DEVELOPMENT</u>
+<u style="left:216.4pt;top:52.6pt;font-size:7.5pt">OFFICE</u>
+<u style="left:240.2pt;top:23pt;font-size:18pt;font-weight:700">General</u>
+<u style="left:303.1pt;top:23pt;font-size:18pt;font-weight:700">Intake</u>
+<u style="left:354.6pt;top:23pt;font-size:18pt;font-weight:700">Sheet</u>
+<u style="left:547.2pt;top:101.3pt;font-size:6pt">Male</u>
+<u style="left:566.5pt;top:102.1pt;font-size:6pt">Female</u>
+<u style="left:96.2pt;top:108.6pt;font-size:6pt">Last</u>
+<u style="left:107.3pt;top:108.6pt;font-size:6pt">Name</u>
+<u style="left:210.2pt;top:108.8pt;font-size:6pt">First</u>
+<u style="left:222.1pt;top:108.8pt;font-size:6pt">Name</u>
+<u style="left:299.7pt;top:108.2pt;font-size:6pt">Middle</u>
+<u style="left:318.3pt;top:108.2pt;font-size:6pt">Name</u>
+<u style="left:395.9pt;top:108.2pt;font-size:6pt">Ext</u>
+<u style="left:404.8pt;top:108.2pt;font-size:6pt">(Jr,Sr)</u>
+<u style="left:81.6pt;top:134.6pt;font-size:6pt">YYYY</u>
+<u style="left:112.7pt;top:134.8pt;font-size:6pt">MM</u>
+<u style="left:132.2pt;top:135.1pt;font-size:6pt">DD</u>
+<u style="left:226.8pt;top:134.6pt;font-size:6pt">Region</u>
+<u style="left:281.9pt;top:135.1pt;font-size:6pt">Province</u>
+<u style="left:349.8pt;top:135.1pt;font-size:6pt">District</u>
+<u style="left:379.7pt;top:135.1pt;font-size:6pt">City/Municipality</u>
+<u style="left:485.2pt;top:135.1pt;font-size:6pt">Barangay</u>
+<u style="left:530.6pt;top:134.6pt;font-size:6pt">No./Street/Purok</u>
+<u style="left:115.5pt;top:163.9pt;font-size:6.8pt">Single</u>
+<u style="left:191.1pt;top:164.5pt;font-size:6pt">Other,</u>
+<u style="left:208.2pt;top:164.5pt;font-size:6pt">Specify</u>
+<u style="left:112.9pt;top:174.5pt;font-size:6pt">Married</u>
+<u style="left:526.9pt;top:92.9pt;font-size:7.5pt;font-weight:700">2.</u>
+<u style="left:534.4pt;top:92.9pt;font-size:7.5pt;font-weight:700">Sex*</u>
+<u style="left:259.4pt;top:215.4pt;font-size:6.8pt">Walk</u>
+<u style="left:274.9pt;top:215.4pt;font-size:6.8pt">in</u>
+<u style="left:300.1pt;top:215.6pt;font-size:7.5pt">Referral</u>
+<u style="left:547.2pt;top:270.3pt;font-size:6pt">Male</u>
+<u style="left:566.5pt;top:271.2pt;font-size:6pt">Female</u>
+<u style="left:96.2pt;top:277.6pt;font-size:6pt">Last</u>
+<u style="left:107.3pt;top:277.6pt;font-size:6pt">Name</u>
+<u style="left:215.9pt;top:277.8pt;font-size:6pt">First</u>
+<u style="left:227.9pt;top:277.8pt;font-size:6pt">Name</u>
+<u style="left:299.7pt;top:277.2pt;font-size:6pt">Middle</u>
+<u style="left:318.3pt;top:277.2pt;font-size:6pt">Name</u>
+<u style="left:417.5pt;top:278.4pt;font-size:6pt">Ext</u>
+<u style="left:426.3pt;top:278.4pt;font-size:6pt">(Jr,Sr)</u>
+<u style="left:521.2pt;top:261.4pt;font-size:7.5pt;font-weight:700">2.</u>
+<u style="left:528.7pt;top:261.4pt;font-size:7.5pt;font-weight:700">Sex*</u>
+<u style="left:39.9pt;top:244.3pt;font-size:7.5pt">NHTS</u>
+<u style="left:82.3pt;top:245.2pt;font-size:7.5pt">ISF</u>
+<u style="left:112.8pt;top:245.5pt;font-size:7.5pt">Disadvantaged</u>
+<u style="left:159.4pt;top:245.5pt;font-size:7.5pt">Individual</u>
+<u style="left:81.6pt;top:301.2pt;font-size:6pt">YYYY</u>
+<u style="left:112.7pt;top:301.4pt;font-size:6pt">MM</u>
+<u style="left:132.2pt;top:301.8pt;font-size:6pt">DD</u>
+<u style="left:380.2pt;top:303.4pt;font-size:6pt">City/Municipality</u>
+<u style="left:435.6pt;top:303.4pt;font-size:6pt">District</u>
+<u style="left:481.1pt;top:303.4pt;font-size:6pt">Barangay</u>
+<u style="left:531.7pt;top:302.9pt;font-size:6pt">No./Street/Purok</u>
+<u style="left:391.8pt;top:317.6pt;font-size:6.8pt">Single</u>
+<u style="left:226.8pt;top:301.2pt;font-size:6pt">Region</u>
+<u style="left:284.8pt;top:302.3pt;font-size:6pt">Province</u>
+<u style="left:346.8pt;top:302.9pt;font-size:6pt">District</u>
+<u style="left:426.9pt;top:318.5pt;font-size:6pt">Married</u>
+<u style="left:469.9pt;top:317.7pt;font-size:6pt">Other,</u>
+<u style="left:487pt;top:317.7pt;font-size:6pt">Specify</u>
+<u style="left:19.8pt;top:351.3pt;font-size:6.8pt">Last</u>
+<u style="left:32.2pt;top:351.3pt;font-size:6.8pt">Name</u>
+<u style="left:60.2pt;top:351.3pt;font-size:6.8pt">First</u>
+<u style="left:73.8pt;top:351.3pt;font-size:6.8pt">Name</u>
+<u style="left:105pt;top:351.3pt;font-size:6.8pt">Middle</u>
+<u style="left:125.8pt;top:351.3pt;font-size:6.8pt">Name</u>
+<u style="left:260.3pt;top:351.6pt;font-size:6.8pt">Relationship</u>
+<u style="left:339.6pt;top:351.6pt;font-size:7.5pt">Highest</u>
+<u style="left:364.3pt;top:351.6pt;font-size:7.5pt">Educational</u>
+<u style="left:401.8pt;top:351.6pt;font-size:7.5pt">Attainment</u>
+<u style="left:31.4pt;top:582.8pt;font-size:6.8pt">Counselling</u>
+<u style="left:87pt;top:582.2pt;font-size:6.8pt">Legal</u>
+<u style="left:102.7pt;top:582.2pt;font-size:6.8pt">Assistance</u>
+<u style="left:132.8pt;top:582.2pt;font-size:6.8pt">(Retainer</u>
+<u style="left:159.6pt;top:582.2pt;font-size:6.8pt">Lawyer/Others)</u>
+<u style="left:238pt;top:582.8pt;font-size:6.8pt">Referral</u>
+<u style="left:261.4pt;top:582.8pt;font-size:6.8pt">(Specify)</u>
+<u style="left:385.1pt;top:582.2pt;font-size:6.8pt">Others</u>
+<u style="left:405.2pt;top:582.2pt;font-size:6.8pt">Specify:</u>
+<u style="left:492.2pt;top:669.8pt;font-size:6.8pt">Bus</u>
+<u style="left:530.5pt;top:669.8pt;font-size:6.8pt">Boat</u>
+<u style="left:246.8pt;top:797.7pt;font-size:6.8pt">(a)</u>
+<u style="left:255.6pt;top:797.7pt;font-size:6.8pt">Sub-Total</u>
+<u style="left:262pt;top:862.1pt;font-size:7.5pt">Total</u>`;
 const ixT=(x,y,w,h,t,o={})=>{t=t==null?'':String(t).trim();if(!t)return '';
   const al=o.al||'c',sz=o.size||7.5;
   return `<div class="ixt" data-ml="${o.ml?1:0}" style="left:${x}pt;top:${y}pt;width:${w}pt;height:${h}pt;font-size:${sz}pt;justify-content:${{l:'flex-start',c:'center',r:'flex-end'}[al]};text-align:${{l:'left',c:'center',r:'right'}[al]}${o.b?';font-weight:700':''}"><span style="white-space:${o.ml?'normal;width:100%':'nowrap'}">${esc(t)}</span></div>`};
@@ -767,7 +1264,7 @@ function printIntake(c){
   /* continuation sheet when the family has more than 4 members */
   const more=fam.slice(4);
   const pg2=more.length?`<div class="ix2"><h3>General Intake Sheet &ndash; Family Composition (continuation)</h3><p>Case no.: <b>${esc(c.CaseNo)}</b> &nbsp; Client: <b>${esc(fullName(c))}</b></p><table><tr><th>Last Name</th><th>First Name</th><th>Middle Name</th><th>Sex</th><th>Age</th><th>Civil Status</th><th>Relationship</th><th>Highest Educational Attainment</th><th>Skills / Occupation</th><th>Est. Monthly Income</th></tr>${more.map(m=>'<tr>'+FC.map(([k])=>`<td>${esc(k==='MonthlyIncome'?numF(m[k]):m[k])}</td>`).join('')+'</tr>').join('')}</table></div>`:'';
-  doPrint(`<div class="ix">${same?IX_BG:IX_BG.replace(/<rect class="sa"[^>]*\/>/,'')}<img src="${LGU_URL}" alt="" style="position:absolute;left:22.8pt;top:18pt;width:53.9pt;height:49.5pt;object-fit:contain">${o.join('')}</div>${pg2}`,'@page{size:8.5in 13in;margin:0}');
+  doPrint(`<div class="ix">${same?IX_BG:IX_BG.split('\n').filter(l=>l.indexOf('data-sa')<0).join('\n')}<img src="${LGU_URL}" alt="" style="position:absolute;left:22.8pt;top:18pt;width:53.9pt;height:49.5pt;object-fit:contain">${o.join('')}</div>${pg2}`,'@page{size:8.5in 13in;margin:0}');
 }
 function printStudy(c){
   const fam=S.family.filter(m=>m.CaseNo===c.CaseNo),kv=(l,v)=>`<tr><td style="width:230px">${l}</td><td style="width:14px">:</td><td>${esc(v)}</td></tr>`,
@@ -830,7 +1327,7 @@ function gate(state,msg){
   const box=(t,b)=>`<div class="gbox"><div class="ghead"><div class="seal">AICS</div><div><b>AICS · CSWDO Mabalacat City</b><span>${t}</span></div></div><div class="gbody">${b}</div></div>`,
     note=msg?`<p class="gmail">${esc(msg)}</p>`:'';
   const M={
-    loading:box('Please wait','<p>Loading…</p>'),
+    loading:box('Please wait','<p>Loading…</p><div class="row"><button class="btn alt" id="gSkip">Taking too long? Go to sign in</button></div>'),
     login:box('Sign in',`${note}<p>Enter your registered e-mail address. We will send a 6-digit code to it.</p><div class="gform"><label>E-mail</label><input id="gEmail" type="email" value="${esc(GE)}" autocomplete="email"></div><div class="row"><button class="btn" id="gSend">Send me a code</button></div><p class="gl2">No access yet? <a href="#" id="gReq">Request access</a></p>`),
     code:box('Enter your code',`${note}<p>We sent a 6-digit code to <b>${esc(GE)}</b>. It works for 10 minutes. If it does not arrive, check your Spam folder.</p><div class="gform"><label>6-digit code</label><input id="gCode" inputmode="numeric" maxlength="6" autocomplete="one-time-code"></div><div class="row"><button class="btn" id="gVerify">Sign in</button><button class="btn alt" id="gResend">Send a new code</button></div><p class="gl2"><a href="#" id="gBack">Use a different e-mail</a></p>`),
     request:box('Request access',`${note}<p>This system is for authorized CSWDO staff only. Send a request and the Super Admin will review it. You will get an e-mail once it is approved.</p><div class="gform"><label>Full name</label><input id="rqName"><label>E-mail (Google account)</label><input id="rqEmail" type="email" value="${esc(GE)}"><label>Position / office</label><input id="rqPos"><label>License no. (if any)</label><input id="rqLic"><label>Message (optional)</label><textarea id="rqMsg" rows="2"></textarea></div><div class="row"><button class="btn" id="rqSend">Send request</button><button class="btn alt" id="gBack">Back</button></div>`),
@@ -839,6 +1336,7 @@ function gate(state,msg){
   $('gate').innerHTML=M[state]||M.login;$('gate').style.display='flex';
   const on=(id,f)=>{if($(id))$(id).onclick=async ev=>{ev.preventDefault();const b=ev.currentTarget;if(b.tagName==='BUTTON')b.disabled=true;try{await f()}finally{if(b.tagName==='BUTTON')b.disabled=false}}};
   const mail=()=>$('gEmail').value.trim().toLowerCase(),ok=m=>/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m);
+  on('gSkip',async()=>{saveTok('');gate('login')});
   on('gSend',async()=>{GE=mail();if(!ok(GE))return notify('Enter a valid e-mail address.');
     try{const r=await raw('authSendCode',GE);if(r&&r.sent===false)return gate('login',noCode(r.reason));gate('code',r&&r.ver?'A code was sent to '+GE+' (server '+r.ver+'). Check your Inbox and Spam folder.':'OLD SERVER VERSION: the new Code.gs is not deployed yet. In Apps Script use Deploy > Manage deployments > Edit > New version.')}catch(e){notify('Could not send the code: '+(e.message||e))}});
   on('gVerify',async()=>{const c=$('gCode').value.trim();if(c.length!==6)return notify('Enter the 6-digit code from your e-mail.');
@@ -850,15 +1348,16 @@ function gate(state,msg){
     if(!n)return notify('Please enter your full name.');if(!ok(m))return notify('Enter a valid e-mail address.');
     try{GE=m;await raw('authRequestAccess',n,m,$('rqPos').value.trim(),$('rqMsg').value.trim(),$('rqLic').value.trim());gate('requested')}catch(e){notify('Could not send request: '+(e.message||e))}});
 }
+const within=(p,ms)=>Promise.race([p,new Promise((_,no)=>setTimeout(()=>no(new Error('the server did not answer in time. Open the system from the hosted page link (not the script.google.com link), then press Ctrl + F5 and try again')),ms))]);
 async function boot(){
   if(!TOKEN)return gate('login');
   gate('loading');
-  try{ME=await run('whoAmI')}catch(e){if(!/Session ended/.test(e.message||''))gate('login');return}
+  try{ME=await within(run('whoAmI'),15000)}catch(e){if(!/Session ended/.test(e.message||''))gate('login','Could not reach the server: '+(e.message||e));return}
   if(ME.status==='active')return loadApp();
   saveTok('');gate('login','This account does not have active access. Request access or contact the Super Admin.');
 }
 async function loadApp(){
-  let d;try{d=await run('getInit')}catch(e){if(!/Session ended/.test(e.message||'')){saveTok('');gate('login','Could not open the system: '+(e.message||e))}return}
+  let d;try{d=await within(run('getInit'),120000)}catch(e){if(!/Session ended/.test(e.message||'')){saveTok('');gate('login','Could not open the system: '+(e.message||e))}return}
   S=d;ME=Object.assign(ME,d.me);applyRole();$('gate').style.display='none';renderAll();pick();dirRender();
 }
 function applyRole(){
